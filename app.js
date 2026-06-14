@@ -122,7 +122,6 @@
     const map = new Map();
     let totalTenho = 0;
     dados.figurinhas.forEach((f) => {
-      if (f.categoria !== 'jogador' && f.categoria !== 'tecnico') return;
       if (!map.has(f.selecao)) map.set(f.selecao, { total: 0, tenho: 0 });
       const e = map.get(f.selecao);
       e.total++;
