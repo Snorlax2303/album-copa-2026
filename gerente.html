@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/motion@12/dist/motion.js"></script>
   <script src="./data.js?v=3"></script>
+  <script src="./sync.js?v=1"></script>
   <style>
     /* ===== OVERRIDES PRA PAGINA DE GESTAO ===== */
     body { background: var(--bg-base); }
@@ -564,6 +565,10 @@
       // Disparar evento pro Album principal saber
       window.dispatchEvent(new CustomEvent('album-update', { detail: obj }));
     } catch(e) {}
+    // Sync com servidor
+    if (window.AlbumSync) {
+      window.AlbumSync.enviarParaServidor(estados);
+    }
   }
 
   function salvarHistorico() {

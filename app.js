@@ -59,6 +59,10 @@
       estado.estados.forEach((v, id) => { obj[id] = v; });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
     } catch (e) {}
+    // Sync com servidor (fire-and-forget)
+    if (window.AlbumSync) {
+      window.AlbumSync.enviarParaServidor(estado.estados);
+    }
   }
 
   function definirEstado(id, novoEstado) {
