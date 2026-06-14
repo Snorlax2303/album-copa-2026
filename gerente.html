@@ -385,9 +385,25 @@
 
   function getFigurinhas(selecao, numeros) {
     if (!dados) return [];
+    // Mapear codigo da selecao (Brasil -> BRA)
+    const codeMap = {
+      'México':'MEX','África do Sul':'RSA','Coreia do Sul':'KOR','Tchéquia':'CZE',
+      'Canadá':'CAN','Bósnia':'BIH','Catar':'QAT','Suíça':'SUI','Brasil':'BRA',
+      'Marrocos':'MAR','Haiti':'HAI','Escócia':'SCO','EUA':'USA','Paraguai':'PAR',
+      'Austrália':'AUS','Turquia':'TUR','Alemanha':'GER','Curaçao':'CUW',
+      'Costa do Marfim':'CIV','Equador':'ECU','Holanda':'NED','Japão':'JPN',
+      'Suécia':'SWE','Tunísia':'TUN','Bélgica':'BEL','Egito':'EGY','Irã':'IRN',
+      'Nova Zelândia':'NZL','Espanha':'ESP','Cabo Verde':'CPV','Arábia Saudita':'KSA',
+      'Uruguai':'URU','França':'FRA','Senegal':'SEN','Iraque':'IRQ','Noruega':'NOR',
+      'Argentina':'ARG','Argélia':'ALG','Áustria':'AUT','Jordânia':'JOR',
+      'Portugal':'POR','Congo':'COD','Uzbequistão':'UZB','Colômbia':'COL',
+      'Inglaterra':'ENG','Croácia':'CRO','Gana':'GHA','Panamá':'PAN'
+    };
+    const prefix = codeMap[selecao] || selecao.substring(0,3).toUpperCase();
     return dados.figurinhas.filter(f => {
       if (f.selecao !== selecao) return false;
-      const numMatch = f.code ? parseInt(f.code.replace(/[A-Za-z]/g,'')) : f.numero;
+      const code = f.code || '';
+      const numMatch = parseInt(code.replace(prefix, '')) || 0;
       return numeros.includes(numMatch);
     });
   }
