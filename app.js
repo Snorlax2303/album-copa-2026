@@ -202,25 +202,64 @@
 
     catalogo.innerHTML = figs.map(renderFigurinha).join('');
 
-    // Liga event listeners
+    // Liga eventos — clique no card alterna popup
+    const popupsAbertos = new Set();
+    let popupAtual = null;
+
     catalogo.querySelectorAll('.figurinha').forEach((el) => {
-      const id = el.dataset.id;
-      // clique no card (atalho de alternar)
       el.addEventListener('click', (e) => {
-        if (e.target.closest('.figurinha__btn')) return; // não alterna se clicou em botão
-        alternarEstadoRapido(id);
+        if (e.target.closest('.figurinha__popup-btn')) return;
+        // burst visual
+        el.classList.remove('burst');
+        void el.offsetWidth;
+        el.classList.add('burst');
+
+        const popup = el.querySelector('.figurinha__popup');
+        if (!popup) return;
+
+        if (popup.classList.contains('aberto')) {
+          popup.classList.remove('aberto');
+          popupAtual = null;
+        } else {
+          // Fecha qualquer outro popup aberto
+          document.querySelectorAll('.figurinha__popup.aberto').forEach(p => p.classList.remove('aberto'));
+          popup.classList.add('aberto');
+          popupAtual = popup;
+        }
       });
     });
-    catalogo.querySelectorAll('.figurinha__btn').forEach((btn) => {
+
+    // Botões do popup
+    catalogo.querySelectorAll('.figurinha__popup-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = btn.closest('.figurinha').dataset.id;
-        const target = btn.dataset.estado;
-        const atual = estado.estados.get(id);
-        // se já tá ativo, remove; senão set
-        definirEstado(id, atual === target ? null : target);
+        const popup = btn.closest('.figurinha__popup');
+        const card = btn.closest('.figurinha');
+        if (!card || !popup) return;
+        const id = card.dataset.id;
+        const estadoBtn = btn.dataset.estado;
+
+        if (estadoBtn === 'none') {
+          definirEstado(id, null);
+        } else {
+          const atual = estado.estados.get(id);
+          definirEstado(id, atual === estadoBtn ? null : estadoBtn);
+        }
+
+        // Fecha popup
+        popup.classList.remove('aberto');
+        popupAtual = null;
       });
     });
+
+    // Fecha popups ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!popupAtual) return;
+      if (!e.target.closest('.figurinha__popup') && !e.target.closest('.figurinha')) {
+        popupAtual.classList.remove('aberto');
+        popupAtual = null;
+      }
+    }, { once: false });
   }
 
   function renderFigurinha(fig) {
@@ -229,35 +268,36 @@
     const isEsp = fig.categoria !== 'jogador' && fig.categoria !== 'tecnico';
     const categoriaLabel = fig.categoria ? fig.categoria.charAt(0).toUpperCase() + fig.categoria.slice(1) : '';
 
+    const estLabel = est ? (est === 'tenho' ? '✓' : est === 'repetida' ? '↻' : '✗') : '';
+
     // Layout diferente por modo
     if (estado.modo === 'minimal') {
-      return `
-        <article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)} — ${escapeHtml(fig.selecao || '')}">
-          <div class="figurinha__img">
-            ${fig.raridade === 'lendaria' ? '<div class="figurinha__selo figurinha__selo--lendaria" title="Lendária">★</div>' : ''}
-            <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
-          </div>
-        </article>
-      `;
+      return `<article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)} — ${escapeHtml(fig.selecao || '')}">
+        <div class="figurinha__img">${estLabel ? `<span class="figurinha__marca figurinha__marca--${est}">${estLabel}</span>` : ''}
+        <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
+        </div></article>`;
     }
 
     if (estado.modo === 'album') {
-      return `
-        <article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)}">
-          <div class="figurinha__img">
-            <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
-          </div>
-        </article>
-      `;
+      return `<article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)}">
+        <div class="figurinha__img">${estLabel ? `<span class="figurinha__marca figurinha__marca--${est}">${estLabel}</span>` : ''}
+        <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
+        </div></article>`;
     }
 
-    // detalhada + showcase (full)
+    // detalhada
     return `
       <article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}">
-        ${fig.raridade === 'lendaria' ? '<div class="figurinha__selo figurinha__selo--lendaria" title="Lendária">★</div>' :
-          fig.raridade === 'rara' ? '<div class="figurinha__selo figurinha__selo--rara" title="Rara">◆</div>' : ''}
         <div class="figurinha__img">
           <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
+          <span class="figurinha__marca figurinha__marca--${est || 'none'}">${est === 'tenho' ? '✓' : est === 'repetida' ? '↻' : est === 'falta' ? '✗' : ''}</span>
+          <div class="figurinha__popup" id="popup-${fig.id}">
+            <span class="figurinha__popup-label">Status</span>
+            <button class="figurinha__popup-btn ${est === 'tenho' ? 'ativo' : ''}" data-estado="tenho" type="button">✓ Tenho</button>
+            <button class="figurinha__popup-btn ${est === 'repetida' ? 'ativo' : ''}" data-estado="repetida" type="button">↻ Repetida</button>
+            <button class="figurinha__popup-btn ${est === 'falta' ? 'ativo' : ''}" data-estado="falta" type="button">✗ Falta</button>
+            ${est ? '<button class="figurinha__popup-btn figurinha__popup-btn--limpar" data-estado="none" type="button">— Limpar</button>' : ''}
+          </div>
         </div>
         <div class="figurinha__info">
           <span class="figurinha__num">#${String(fig.numero).padStart(3, '0')}</span>
@@ -266,17 +306,10 @@
           <div class="figurinha__meta">
             ${fig.raridade !== 'comum' ? `<span class="figurinha__tag ${rarClass}">${fig.raridade}</span>` : ''}
             ${fig.posicao && fig.posicao !== 'ESP' ? `<span class="figurinha__tag">${fig.posicao}</span>` : ''}
-            ${fig.grupo && fig.grupo !== 'ESP' ? `<span class="figurinha__tag">Grupo ${fig.grupo}</span>` : ''}
             ${isEsp ? `<span class="figurinha__tag">${categoriaLabel}</span>` : ''}
           </div>
         </div>
-        <div class="figurinha__acoes">
-          <button class="figurinha__btn ${est === 'tenho' ? 'ativo' : ''}" data-estado="tenho" type="button">Tenho</button>
-          <button class="figurinha__btn ${est === 'repetida' ? 'ativo' : ''}" data-estado="repetida" type="button">Repetida</button>
-          <button class="figurinha__btn ${est === 'falta' ? 'ativo' : ''}" data-estado="falta" type="button">Falta</button>
-        </div>
-      </article>
-    `;
+      </article>`;
   }
 
   // =================== FILTROS ===================
@@ -445,6 +478,34 @@
     }
   }
 
+  // =================== PARTÍCULAS DE FUNDO ===================
+  function initParticles() {
+    const container = document.createElement('div');
+    container.className = 'particles';
+    container.id = 'particles';
+    document.body.appendChild(container);
+
+    const count = Math.min(Math.floor(window.innerWidth / 30), 40);
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      const size = 1 + Math.random() * 2.5;
+      const delay = Math.random() * 20;
+      const dur = 15 + Math.random() * 25;
+      p.style.cssText = `
+        left: ${x}%;
+        top: ${y}%;
+        width: ${size}px;
+        height: ${size}px;
+        animation: float-particle ${dur}s ${delay}s infinite ease-in-out;
+        opacity: ${0.1 + Math.random() * 0.15};
+      `;
+      container.appendChild(p);
+    }
+  }
+
   // =================== INIT ===================
   function init() {
     if (!dados || !dados.figurinhas) {
@@ -457,6 +518,7 @@
     popularFiltros();
     ligarFiltros();
     ligarModos();
+    initParticles();
     document.getElementById('btn-limpar').addEventListener('click', limparTudo);
     document.getElementById('btn-tema').addEventListener('click', alternarTema);
     renderizarTudo();

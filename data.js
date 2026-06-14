@@ -352,7 +352,7 @@
     const tipo = bandeira ? bandeira.tipo : 'faixas-h';
     const inner = gerarEscudo(cores, tipo);
 
-    const svg = `
+    return `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" width="200" height="280">
   <defs>
     <linearGradient id="bg-${fig.id}" x1="0" y1="0" x2="0" y2="1">
@@ -360,38 +360,40 @@
       <stop offset="100%" stop-color="#062b0a"/>
     </linearGradient>
   </defs>
+
+  <!-- Fundo escuro com gradiente -->
   <rect x="0" y="0" width="200" height="280" fill="url(#bg-${fig.id})"/>
-  <rect x="6" y="6" width="188" height="268" fill="none" stroke="#FFDF00" stroke-width="2" rx="6"/>
 
-  <rect x="10" y="10" width="50" height="28" rx="4" fill="#0a3d0a" stroke="#FFDF00" stroke-width="1"/>
-  <text x="35" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold"
-        fill="#FFDF00" text-anchor="middle">${fig.numero}</text>
+  <!-- Moldura fina -->
+  <rect x="3" y="3" width="194" height="274" fill="none" stroke="#2a2a2f" stroke-width="1"/>
 
+  <!-- Número grande estilo Panini -->
+  <rect x="10" y="10" width="180" height="36" rx="2" fill="#0a3d0a" stroke="#FFDF00" stroke-width="1"/>
+  <text x="100" y="35" font-family="Inter, sans-serif" font-size="20" font-weight="800"
+        fill="#FFDF00" text-anchor="middle" letter-spacing="2">${fig.numero}</text>
+
+  <!-- Banner da bandeira (escudo) central -->
+  <g transform="translate(50, 65) scale(1, 1)">${inner}</g>
+
+  <!-- Nome do jogador embaixo -->
+  <text x="100" y="220" font-family="Inter, sans-serif" font-size="14" font-weight="700"
+        fill="#FFFFFF" text-anchor="middle" letter-spacing="-0.3">${escapeXml(truncar(fig.nome, 20))}</text>
+
+  <!-- Seleção -->
+  <text x="100" y="242" font-family="Inter, sans-serif" font-size="9" font-weight="500"
+        fill="#9A9A9F" text-anchor="middle" letter-spacing="1" text-transform="uppercase">${escapeXml(fig.selecao || '')}</text>
+
+  <!-- Posição -->
+  ${fig.posicao && fig.posicao !== 'ESP' ? `<text x="100" y="260" font-family="Inter, sans-serif" font-size="8" font-weight="600" fill="#5A5A60" text-anchor="middle" letter-spacing="2">${fig.posicao}</text>` : ''}
+
+  <!-- Raridade -- selo simples -->
   ${fig.raridade === 'lendaria'
-    ? `<circle cx="180" cy="24" r="10" fill="#FFDF00" stroke="#000" stroke-width="1"/>
-       <text x="180" y="28" font-family="Arial" font-size="10" text-anchor="middle" fill="#000" font-weight="bold">★</text>`
+    ? `<circle cx="180" cy="18" r="8" fill="#FFDF00" stroke="#000" stroke-width="1"/>
+       <text x="180" y="22" font-family="Inter, sans-serif" font-size="10" text-anchor="middle" fill="#000" font-weight="900">★</text>`
     : fig.raridade === 'rara'
-    ? `<circle cx="180" cy="24" r="10" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
-       <text x="180" y="28" font-family="Arial" font-size="10" text-anchor="middle" fill="#000" font-weight="bold">◆</text>`
+    ? `<circle cx="180" cy="18" r="8" fill="#C0C0C0" stroke="#000" stroke-width="1"/>
+       <text x="180" y="22" font-family="Inter, sans-serif" font-size="9" text-anchor="middle" fill="#000" font-weight="700">◆</text>`
     : ''}
-
-  <g transform="translate(20,50)">
-    <rect x="0" y="0" width="160" height="100" fill="#FFFFFF" stroke="#000" stroke-width="0.5"/>
-    <g transform="translate(30, 0)">${inner}</g>
-  </g>
-
-  <text x="100" y="175" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
-        fill="#FFFFFF" text-anchor="middle">${escapeXml(fig.selecao)}</text>
-
-  <text x="100" y="205" font-family="Arial, sans-serif" font-size="16" font-weight="bold"
-        fill="#FFDF00" text-anchor="middle">${escapeXml(truncar(fig.nome, 18))}</text>
-
-  <rect x="60" y="220" width="80" height="22" rx="4" fill="#000" stroke="#FFDF00" stroke-width="1"/>
-  <text x="100" y="236" font-family="Arial, sans-serif" font-size="12" font-weight="bold"
-        fill="#FFDF00" text-anchor="middle">${fig.posicao}</text>
-
-  <text x="100" y="262" font-family="Arial, sans-serif" font-size="11"
-        fill="#FFFFFF" text-anchor="middle">Grupo ${fig.grupo}</text>
 </svg>`.trim();
 
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
