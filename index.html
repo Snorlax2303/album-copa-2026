@@ -2,11 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Plataforma de controle de figurinhas da Copa do Mundo 2026" />
-  <title>Álbum Copa 2026 — Controle de Figurinhas</title>
+  <meta name="viewport" content="width-width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Plataforma completa de controle de figurinhas da Copa do Mundo 2026 — 676 figurinhas, 4 modos de visualização, dashboard, filtros, exportação" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <title>Álbum Copa 2026 — 676 Figurinhas</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%23009C3B' stroke='%23FFDF00' stroke-width='3'/><text x='32' y='40' font-size='28' text-anchor='middle' fill='%23FFDF00' font-family='Arial' font-weight='bold'>⚽</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23009C3B'/><stop offset='50%' stop-color='%23FFDF00'/><stop offset='100%' stop-color='%231565C0'/></linearGradient></defs><circle cx='32' cy='32' r='28' fill='url(%23g)'/><text x='32' y='42' font-size='30' text-anchor='middle' fill='%23ffffff' font-family='Arial' font-weight='bold'>⚽</text></svg>" />
 </head>
 <body>
   <!-- ============== HEADER ============== -->
@@ -16,7 +17,7 @@
         <span class="cabecalho__icone" aria-hidden="true">⚽</span>
         <div>
           <h1 class="cabecalho__titulo">Álbum Copa 2026</h1>
-          <p class="cabecalho__subtitulo">Controle pessoal de figurinhas</p>
+          <p class="cabecalho__subtitulo">676 figurinhas · 48 seleções · 4 modos de visualização</p>
         </div>
       </div>
       <button id="btn-limpar" class="botao botao--secundario" type="button" title="Limpar todo o álbum">
@@ -32,29 +33,39 @@
         <span class="card__rotulo">Conclusão</span>
         <span id="stat-percentual" class="card__valor card__valor--grande">0%</span>
         <div class="barra-progresso" aria-hidden="true">
-          <div id="barra-progresso-preenchimento" class="barra-progresso__preenchimento"></div>
+          <div id="barra-progresso-preenchimento" class="barra-progresso__preenchimento" style="width: 0%"></div>
         </div>
-        <span id="stat-concluidas" class="card__rodape">0 de 0 figurinhas</span>
+        <span id="stat-concluidas" class="card__rodape">0 de 676 figurinhas</span>
       </article>
 
       <article class="card">
-        <span class="card__rotulo">Total no álbum</span>
-        <span id="stat-total" class="card__valor">0</span>
+        <span class="card__rotulo">Total</span>
+        <span id="stat-total" class="card__valor">676</span>
+        <span class="card__rodape">no álbum oficial</span>
       </article>
 
       <article class="card card--tenho">
         <span class="card__rotulo">Tenho</span>
         <span id="stat-tenho" class="card__valor">0</span>
+        <span class="card__rodape">marcadas ✓</span>
       </article>
 
       <article class="card card--falta">
         <span class="card__rotulo">Falta</span>
         <span id="stat-falta" class="card__valor">0</span>
+        <span class="card__rodape">pra completar</span>
       </article>
 
       <article class="card card--repetida">
         <span class="card__rotulo">Repetidas</span>
         <span id="stat-repetida" class="card__valor">0</span>
+        <span class="card__rodape">pra trocar</span>
+      </article>
+
+      <article class="card">
+        <span class="card__rotulo">Lendárias</span>
+        <span id="stat-lendaria" class="card__valor" style="color: #FFD700">0</span>
+        <span class="card__rodape">★ tenho</span>
       </article>
     </section>
 
@@ -64,9 +75,25 @@
       <div id="grafico-selecoes" class="grafico__barras"></div>
     </section>
 
-    <!-- ============== FILTROS ============== -->
+    <!-- ============== FILTROS + MODO DE VISUALIZAÇÃO ============== -->
     <section class="filtros" aria-label="Filtros e busca">
-      <h2 class="secao-titulo">Filtros</h2>
+      <div class="filtros__header">
+        <h2 class="secao-titulo" style="margin: 0">Filtros & Visualização</h2>
+        <div class="filtros__modo" role="tablist" aria-label="Modo de visualização">
+          <button class="filtros__modo-btn ativo" data-modo="detalhada" role="tab" aria-selected="true" title="Detalhada">
+            <span aria-hidden="true">📋</span><span class="modo-label">Detalhada</span>
+          </button>
+          <button class="filtros__modo-btn" data-modo="album" role="tab" aria-selected="false" title="Álbum">
+            <span aria-hidden="true">📖</span><span class="modo-label">Álbum</span>
+          </button>
+          <button class="filtros__modo-btn" data-modo="minimal" role="tab" aria-selected="false" title="Minimalista">
+            <span aria-hidden="true">⚪</span><span class="modo-label">Minimalista</span>
+          </button>
+          <button class="filtros__modo-btn" data-modo="showcase" role="tab" aria-selected="false" title="Showcase">
+            <span aria-hidden="true">✨</span><span class="modo-label">Showcase</span>
+          </button>
+        </div>
+      </div>
 
       <div class="filtros__grid">
         <label class="campo">
@@ -74,7 +101,7 @@
           <input
             id="filtro-busca"
             type="search"
-            placeholder="Nome do jogador ou seleção..."
+            placeholder="Nome, seleção ou categoria..."
             autocomplete="off"
           />
         </label>
@@ -86,6 +113,13 @@
             <option value="tenho">Tenho</option>
             <option value="falta">Falta</option>
             <option value="repetida">Repetida</option>
+          </select>
+        </label>
+
+        <label class="campo">
+          <span class="campo__rotulo">Categoria</span>
+          <select id="filtro-categoria">
+            <option value="todas">Todas</option>
           </select>
         </label>
 
@@ -121,35 +155,29 @@
         </label>
       </div>
 
-      <div class="filtros__rodape">
-        <span id="contador-filtradas" class="filtros__contador">
-          Mostrando 0 de 0 figurinhas
-        </span>
-        <button id="btn-resetar-filtros" class="botao botao--texto" type="button">
+      <div class="filtros__resultado">
+        <span>Mostrando <strong id="resultado-contador">0</strong> de <strong id="resultado-total">0</strong> figurinhas</span>
+        <button id="btn-limpar-filtros" class="botao botao--fantasma" type="button">
           Limpar filtros
         </button>
       </div>
     </section>
 
-    <!-- ============== GRID DE FIGURINHAS ============== -->
-    <section aria-label="Catálogo de figurinhas">
-      <h2 class="secao-titulo">Catálogo</h2>
-      <div id="grid-figurinhas" class="grid"></div>
-      <p id="mensagem-vazia" class="mensagem-vazia" hidden>
-        Nenhuma figurinha encontrada com os filtros atuais.
-      </p>
-    </section>
+    <!-- ============== CATÁLOGO ============== -->
+    <section class="catalogo catalogo--detalhada" id="catalogo" aria-label="Catálogo de figurinhas"></section>
   </main>
 
   <footer class="rodape">
     <p>
-      Álbum Copa 2026 — projeto pessoal. Dados salvos no seu navegador
-      (localStorage). Sem servidor, sem rastreio.
+      Álbum Copa 2026 · <span class="rodape__destaque">676 figurinhas</span> · projeto pessoal
+    </p>
+    <p style="margin-top: 0.5rem; font-size: 0.7rem; opacity: 0.7">
+      Dados salvos no seu navegador (localStorage) · Sem servidor · Sem rastreio
     </p>
   </footer>
 
   <!-- ============== SCRIPTS ============== -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
