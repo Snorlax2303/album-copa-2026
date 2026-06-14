@@ -1,28 +1,48 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width-width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Plataforma completa de controle de figurinhas da Copa do Mundo 2026 — 676 figurinhas, 4 modos de visualização, dashboard, filtros, exportação" />
-  <meta name="theme-color" content="#0a0e1a" />
-  <title>Álbum Copa 2026 — 676 Figurinhas</title>
+  <meta name="theme-color" content="#0A0A0B" />
+  <title>Álbum Copa 2026 — 676 Figurinhas · Controle Editorial</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%23009C3B'/><stop offset='50%' stop-color='%23FFDF00'/><stop offset='100%' stop-color='%231565C0'/></linearGradient></defs><circle cx='32' cy='32' r='28' fill='url(%23g)'/><text x='32' y='42' font-size='30' text-anchor='middle' fill='%23ffffff' font-family='Arial' font-weight='bold'>⚽</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%230A0A0B'/><circle cx='32' cy='32' r='20' fill='none' stroke='%23FFDF00' stroke-width='2'/><path d='M32 16 L46 26 L42 44 L22 44 L18 26 Z' fill='%23FFDF00'/><circle cx='32' cy='32' r='4' fill='%230A0A0B'/></svg>" />
 </head>
 <body>
   <!-- ============== HEADER ============== -->
   <header class="cabecalho">
     <div class="cabecalho__container">
       <div class="cabecalho__logo">
-        <span class="cabecalho__icone" aria-hidden="true">⚽</span>
+        <span class="cabecalho__icone" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" fill="currentColor" style="color: var(--cor-primaria)"/>
+            <text x="20" y="14" font-family="Inter, sans-serif" font-size="6" font-weight="800" fill="#0A0A0B" text-anchor="middle" letter-spacing="0.5">COPA</text>
+            <text x="20" y="24" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#0A0A0B" text-anchor="middle" letter-spacing="-0.3">26</text>
+            <rect x="8" y="28" width="24" height="2" fill="#0A0A0B"/>
+            <text x="20" y="35" font-family="JetBrains Mono, monospace" font-size="3.5" font-weight="600" fill="#0A0A0B" text-anchor="middle" letter-spacing="0.3">WORLD CUP</text>
+          </svg>
+        </span>
         <div>
+          <span class="cabecalho__marca">Edição Oficial · 2026</span>
           <h1 class="cabecalho__titulo">Álbum Copa 2026</h1>
-          <p class="cabecalho__subtitulo">676 figurinhas · 48 seleções · 4 modos de visualização</p>
+          <p class="cabecalho__subtitulo">676 FIGURINHAS · 48 SELEÇÕES · 12 GRUPOS</p>
         </div>
       </div>
-      <button id="btn-limpar" class="botao botao--secundario" type="button" title="Limpar todo o álbum">
-        🗑️ Limpar tudo
-      </button>
+      <div class="cabecalho__acoes">
+        <button id="btn-tema" class="botao-tema" type="button" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+          <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" style="display:none">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button id="btn-limpar" class="botao botao--secundario" type="button" title="Limpar todo o álbum">
+          Limpar tudo
+        </button>
+      </div>
     </div>
   </header>
 
@@ -44,19 +64,19 @@
         <span class="card__rodape">no álbum oficial</span>
       </article>
 
-      <article class="card card--tenho">
+      <article class="card">
         <span class="card__rotulo">Tenho</span>
         <span id="stat-tenho" class="card__valor">0</span>
-        <span class="card__rodape">marcadas ✓</span>
+        <span class="card__rodape">marcadas</span>
       </article>
 
-      <article class="card card--falta">
+      <article class="card">
         <span class="card__rotulo">Falta</span>
         <span id="stat-falta" class="card__valor">0</span>
         <span class="card__rodape">pra completar</span>
       </article>
 
-      <article class="card card--repetida">
+      <article class="card">
         <span class="card__rotulo">Repetidas</span>
         <span id="stat-repetida" class="card__valor">0</span>
         <span class="card__rodape">pra trocar</span>
@@ -64,44 +84,49 @@
 
       <article class="card">
         <span class="card__rotulo">Lendárias</span>
-        <span id="stat-lendaria" class="card__valor" style="color: #FFD700">0</span>
-        <span class="card__rodape">★ tenho</span>
+        <span id="stat-lendaria" class="card__valor" style="color: var(--cor-lendaria)">0</span>
+        <span class="card__rodape">colecionadas</span>
       </article>
     </section>
 
     <!-- ============== GRÁFICO POR SELEÇÃO ============== -->
     <section class="grafico" aria-label="Figurinhas por seleção">
-      <h2 class="secao-titulo">Progresso por seleção</h2>
+      <h2 class="secao-titulo">
+        <span>Progresso por seleção</span>
+        <strong id="grafico-total" class="mono">0/0</strong>
+      </h2>
       <div id="grafico-selecoes" class="grafico__barras"></div>
     </section>
 
     <!-- ============== FILTROS + MODO DE VISUALIZAÇÃO ============== -->
     <section class="filtros" aria-label="Filtros e busca">
       <div class="filtros__header">
-        <h2 class="secao-titulo" style="margin: 0">Filtros & Visualização</h2>
+        <h2 class="secao-titulo" style="margin: 0; border: 0; padding: 0">
+          <span>Filtros & visualização</span>
+        </h2>
         <div class="filtros__modo" role="tablist" aria-label="Modo de visualização">
           <button class="filtros__modo-btn ativo" data-modo="detalhada" role="tab" aria-selected="true" title="Detalhada">
-            <span aria-hidden="true">📋</span><span class="modo-label">Detalhada</span>
+            <span>Detalhada</span>
           </button>
           <button class="filtros__modo-btn" data-modo="album" role="tab" aria-selected="false" title="Álbum">
-            <span aria-hidden="true">📖</span><span class="modo-label">Álbum</span>
+            <span>Álbum</span>
           </button>
           <button class="filtros__modo-btn" data-modo="minimal" role="tab" aria-selected="false" title="Minimalista">
-            <span aria-hidden="true">⚪</span><span class="modo-label">Minimalista</span>
+            <span>Minimal</span>
           </button>
           <button class="filtros__modo-btn" data-modo="showcase" role="tab" aria-selected="false" title="Showcase">
-            <span aria-hidden="true">✨</span><span class="modo-label">Showcase</span>
+            <span>Showcase</span>
           </button>
         </div>
       </div>
 
       <div class="filtros__grid">
         <label class="campo">
-          <span class="campo__rotulo">🔍 Buscar</span>
+          <span class="campo__rotulo">Buscar</span>
           <input
             id="filtro-busca"
             type="search"
-            placeholder="Nome, seleção ou categoria..."
+            placeholder="Nome, seleção, posição..."
             autocomplete="off"
           />
         </label>
@@ -169,10 +194,10 @@
 
   <footer class="rodape">
     <p>
-      Álbum Copa 2026 · <span class="rodape__destaque">676 figurinhas</span> · projeto pessoal
+      Álbum Copa 2026 · <span class="rodape__destaque">676 figurinhas</span> · projeto pessoal · design editorial
     </p>
-    <p style="margin-top: 0.5rem; font-size: 0.7rem; opacity: 0.7">
-      Dados salvos no seu navegador (localStorage) · Sem servidor · Sem rastreio
+    <p style="margin-top: 0.4rem; font-size: 0.65rem; opacity: 0.7">
+      Dados salvos no navegador (localStorage) · Sem servidor · Sem rastreio
     </p>
   </footer>
 

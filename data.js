@@ -299,13 +299,58 @@
   }
 
   // ============================================================
+  // Geração de ESCUDO (bandeira estilizada em formato de escudo)
+  // viewBox 100x120, path clássico: topo redondo, base em V
+  // ============================================================
+  function gerarEscudo(cores, tipo) {
+    // Path do escudo (clássico heráldico)
+    const pathEscudo = 'M 8 12 Q 8 8 12 8 L 88 8 Q 92 8 92 12 L 92 68 Q 92 92 50 112 Q 8 92 8 68 Z';
+    const clipId = 'escudo-clip-' + Math.random().toString(36).slice(2, 9);
+
+    // Borda dourada dupla (efeito brasão)
+    const borda = `
+      <path d="${pathEscudo}" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+      <path d="${pathEscudo}" fill="none" stroke="#d4af37" stroke-width="0.5"/>
+    `;
+
+    // Banner embaixo
+    const banner = `
+      <g transform="translate(50, 102)">
+        <path d="M -24 0 L 24 0 L 20 8 L -20 8 Z" fill="#1a1a1a" stroke="#d4af37" stroke-width="0.5"/>
+        <circle cx="-24" cy="4" r="1.8" fill="#d4af37"/>
+        <circle cx="24" cy="4" r="1.8" fill="#d4af37"/>
+      </g>
+    `;
+
+    return `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
+  <defs>
+    <clipPath id="${clipId}">
+      <path d="${pathEscudo}"/>
+    </clipPath>
+    <filter id="escudo-shadow-${clipId}" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <g filter="url(#escudo-shadow-${clipId})">
+    <g clip-path="url(#${clipId})">
+      <rect x="0" y="0" width="100" height="100" fill="${cores[0]}"/>
+      <g transform="translate(0, 0)">${gerarBandeiraSvg(cores, tipo)}</g>
+    </g>
+    ${borda}
+    ${banner}
+  </g>
+</svg>`.trim();
+  }
+
+  // ============================================================
   // Geração de SVG inline (data URI) — JOGADOR / TÉCNICO
   // ============================================================
   function gerarImagemJogador(fig) {
     const bandeira = BANDEIRAS[fig.selecao];
     const cores = bandeira ? bandeira.cores : CORES_PADRAO;
     const tipo = bandeira ? bandeira.tipo : 'faixas-h';
-    const inner = gerarBandeiraSvg(cores, tipo);
+    const inner = gerarEscudo(cores, tipo);
 
     const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280" width="200" height="280">

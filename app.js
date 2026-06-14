@@ -142,21 +142,27 @@
     document.getElementById('barra-progresso-preenchimento').style.width = pct + '%';
   }
 
-  // =================== RENDER: GRÁFICO POR SELEÇÃO ===================
+  // =================== RENDER: GRÁFICO POR SELEÇÃO ==================
   function renderizarGrafico() {
     const container = document.getElementById('grafico-selecoes');
     const map = new Map();
+    let totalTenho = 0;
+    let totalSelecoes = 0;
     dados.figurinhas.forEach((f) => {
       if (f.categoria !== 'jogador' && f.categoria !== 'tecnico') return;
       const key = f.selecao;
       if (!map.has(key)) map.set(key, { total: 0, tenho: 0 });
       const e = map.get(key);
       e.total++;
-      if (estado.estados.get(f.id) === 'tenho') e.tenho++;
+      if (estado.estados.get(f.id) === 'tenho') {
+        e.tenho++;
+        totalTenho++;
+      }
     });
     const items = [...map.entries()]
       .map(([nome, v]) => ({ nome, ...v, pct: v.total ? (v.tenho / v.total) * 100 : 0 }))
       .sort((a, b) => b.pct - a.pct || a.nome.localeCompare(b.nome));
+    totalSelecoes = [...map.values()].reduce((acc, v) => acc + v.total, 0);
     container.innerHTML = items.map((it) => `
       <div class="grafico__item">
         <div class="grafico__item-header">
@@ -168,6 +174,8 @@
         </div>
       </div>
     `).join('');
+    const elTotal = document.getElementById('grafico-total');
+    if (elTotal) elTotal.textContent = `${totalTenho}/${totalSelecoes}`;
   }
 
   // =================== RENDER: CATÁLOGO (4 MODOS) ===================
@@ -393,18 +401,64 @@
     renderizarCatalogo();
   }
 
+  // =================== TEMA (DARK/LIGHT) ===================
+  function carregarTema() {
+    try {
+      const t = localStorage.getItem('album-copa-tema');
+      if (t === 'light' || t === 'dark') {
+        document.documentElement.setAttribute('data-tema', t);
+      } else {
+        document.documentElement.setAttribute('data-tema', 'dark');
+      }
+    } catch (e) {
+      document.documentElement.setAttribute('data-tema', 'dark');
+    }
+    atualizarIconeTema();
+  }
+
+  function alternarTema() {
+    const atual = document.documentElement.getAttribute('data-tema') || 'dark';
+    const novo = atual === 'dark' ? 'light' : 'dark';
+    // Desabilita transição durante o toggle (evita bug de cache)
+    document.documentElement.style.transition = 'none';
+    document.documentElement.setAttribute('data-tema', novo);
+    try { localStorage.setItem('album-copa-tema', novo); } catch (e) {}
+    // Força reflow + reabilita transição
+    void document.documentElement.offsetHeight;
+    requestAnimationFrame(() => {
+      document.documentElement.style.transition = '';
+    });
+    atualizarIconeTema();
+  }
+
+  function atualizarIconeTema() {
+    const atual = document.documentElement.getAttribute('data-tema') || 'dark';
+    const lua = document.querySelector('.icone-lua');
+    const sol = document.querySelector('.icone-sol');
+    if (!lua || !sol) return;
+    if (atual === 'dark') {
+      lua.style.display = 'block';
+      sol.style.display = 'none';
+    } else {
+      lua.style.display = 'none';
+      sol.style.display = 'block';
+    }
+  }
+
   // =================== INIT ===================
   function init() {
     if (!dados || !dados.figurinhas) {
       console.error('data.js não carregou ou tem formato inválido');
       return;
     }
+    carregarTema();
     carregarEstados();
     carregarModo();
     popularFiltros();
     ligarFiltros();
     ligarModos();
     document.getElementById('btn-limpar').addEventListener('click', limparTudo);
+    document.getElementById('btn-tema').addEventListener('click', alternarTema);
     renderizarTudo();
     console.log(`✅ Álbum Copa 2026 inicializado: ${dados.total} figurinhas, ${dados.grupos.length} grupos, modo: ${estado.modo}`);
   }
