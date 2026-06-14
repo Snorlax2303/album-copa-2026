@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/motion@12/dist/motion.js"></script>
-  <script src="./data.js?v=3"></script>
-  <script src="./sync.js?v=1"></script>
+  <script src="./data.js?v=3" defer></script>
+  <script src="./sync.js?v=1" defer></script>
   <title>Copa 2026 — Álbum de Figurinhas</title>
 
   <style>
@@ -642,23 +642,27 @@
   // ============== INIT ==============
 
   function init() {
+    // Aguardar DOM carregar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => init());
+      return;
+    }
+
     if (isInstalled) {
-      // PWA já instalado → redireciona pro álbum
       window.location.href = 'index.html';
       return;
-    } else if (!jaViuNfc) {
-      // Primeira vez → mostra tela de instalação
+    }
+
+    if (!jaViuNfc) {
       document.querySelector('.container').style.display = 'none';
       mostrarTelaInstalacao();
     } else {
-      // Já viu mas não instalou → mostra conteúdo + badge de install
       document.getElementById('btn-install').style.display = 'inline-block';
       mostrarConteudo();
     }
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  init();
 })();
 </script>
 </body>
