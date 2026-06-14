@@ -1,28 +1,27 @@
 /**
- * app.js — Álbum Copa 2026 v2.0
+ * app.js — Álbum Copa 2026 v3.0 (simplificado)
  *
  * Funcionalidades:
  *   - CRUD de 3 estados (Tenho / Falta / Repetida) por figurinha
  *   - Persistência em localStorage
- *   - 4 modos de visualização: detalhada, album, minimal, showcase
+ *   - Modo único simplificado: card com número + escudo + nome
  *   - Filtros: busca, estado, categoria, grupo, seleção, posição, raridade
  *   - Dashboard com 6 cards (Conclusão, Total, Tenho, Falta, Repetida, Lendárias)
  *   - Gráfico de progresso por seleção
- *   - Bump de versão: album-copa-2026-v2 (dados expandidos)
+ *   - Partículas de fundo
+ *   - SEM imagens externas — tudo SVG inline
  */
 
 (function () {
   'use strict';
 
   // =================== CONSTANTES ===================
-  const STORAGE_KEY = 'album-copa-2026-v2';
-  const MODOS = ['detalhada', 'album', 'minimal', 'showcase'];
+  const STORAGE_KEY = 'album-copa-2026-v3';
   const MODO_PADRAO = 'detalhada';
 
   // =================== ESTADO GLOBAL ===================
   const estado = {
     estados: new Map(),
-    modo: MODO_PADRAO,
     filtros: {
       busca: '',
       estado: 'todas',
@@ -36,6 +35,77 @@
 
   // =================== DADOS ===================
   const dados = window.AlbumCopa.data;
+
+  // =================== BANDEIRAS (do data.js) ===================
+  function getBandeira(sel) {
+    const bandeiras = window.AlbumCopa.BANDEIRAS;
+    if (!bandeiras) return null;
+    return bandeiras[sel] || null;
+  }
+
+  const CORES_PADRAO = ['#2E7D32', '#FFB300', '#1565C0'];
+
+  // =================== GERADOR DE ESCUDO MINI ===================
+  function gerarMiniEscudo(cores, tipo, uid) {
+    const c1 = cores[0] || '#666';
+    const c2 = cores[1] || '#FFF';
+    const c3 = cores[2] || '#333';
+
+    // Gera o pattern da bandeira
+    let bandeiraSvg = '';
+    if (tipo === 'faixas-h' || !tipo) {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="20" fill="${c1}"/>
+        <rect x="0" y="20" width="60" height="20" fill="${c2}"/>
+        <rect x="0" y="40" width="60" height="20" fill="${c3}"/>`;
+    } else if (tipo === 'faixas-v') {
+      bandeiraSvg = `<rect x="0" y="0" width="20" height="60" fill="${c1}"/>
+        <rect x="20" y="0" width="20" height="60" fill="${c2}"/>
+        <rect x="40" y="0" width="20" height="60" fill="${c3}"/>`;
+    } else if (tipo === 'cruz') {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="60" fill="${c1}"/>
+        <rect x="24" y="0" width="12" height="60" fill="${c2}"/>
+        <rect x="0" y="24" width="60" height="12" fill="${c2}"/>`;
+    } else if (tipo === 'circulo') {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="60" fill="${c1}"/>
+        <circle cx="30" cy="30" r="18" fill="${c2}"/>`;
+    } else if (tipo === 'diagonal') {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="60" fill="${c1}"/>
+        <polygon points="0,0 60,0 60,60" fill="${c2}"/>`;
+    } else if (tipo === 'triangulo') {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="60" fill="${c1}"/>
+        <polygon points="0,0 30,30 0,60" fill="${c2}"/>`;
+    } else if (tipo === 'listras') {
+      let s = '';
+      for (let i = 0; i < 7; i++) {
+        s += `<rect x="0" y="${i * 60/7}" width="60" height="${60/7}" fill="${i % 2 === 0 ? c1 : c2}"/>`;
+      }
+      bandeiraSvg = s;
+    } else {
+      bandeiraSvg = `<rect x="0" y="0" width="60" height="20" fill="${c1}"/>
+        <rect x="0" y="20" width="60" height="20" fill="${c2}"/>
+        <rect x="0" y="40" width="60" height="20" fill="${c3}"/>`;
+    }
+
+    // Path do escudo (formato heráldico)
+    const path = 'M4,8 Q4,4 8,4 L52,4 Q56,4 56,8 L56,40 Q56,56 30,68 Q4,56 4,40 Z';
+    const clipId = 'ec' + (uid || Math.random().toString(36).slice(2, 8));
+
+    return `<svg class="fig__escudo" viewBox="0 0 60 70" width="50" height="58">
+      <defs>
+        <clipPath id="${clipId}">
+          <path d="${path}"/>
+        </clipPath>
+      </defs>
+      <g>
+        <g clip-path="url(#${clipId})">
+          <rect x="0" y="0" width="60" height="70" fill="${c1}"/>
+          <g transform="translate(0,5)">${bandeiraSvg}</g>
+        </g>
+        <path d="${path}" fill="none" stroke="#d4af37" stroke-width="0.8"/>
+        <path d="${path}" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+      </g>
+    </svg>`;
+  }
 
   // =================== LOCALSTORAGE ===================
   function carregarEstados() {
@@ -61,17 +131,6 @@
     } catch (err) {
       console.warn('Falha ao salvar:', err);
     }
-  }
-
-  function carregarModo() {
-    try {
-      const m = localStorage.getItem('album-copa-modo');
-      if (m && MODOS.includes(m)) estado.modo = m;
-    } catch (e) {}
-  }
-
-  function salvarModo() {
-    try { localStorage.setItem('album-copa-modo', estado.modo); } catch (e) {}
   }
 
   // =================== CRUD ===================
@@ -178,15 +237,13 @@
     if (elTotal) elTotal.textContent = `${totalTenho}/${totalSelecoes}`;
   }
 
-  // =================== RENDER: CATÁLOGO (4 MODOS) ===================
+  // =================== RENDER: CATÁLOGO ===================
   function renderizarCatalogo() {
     const catalogo = document.getElementById('catalogo');
     const figs = aplicarFiltros();
 
-    // Atualiza classe do container baseado no modo
-    catalogo.className = 'catalogo catalogo--' + estado.modo;
+    catalogo.className = 'catalogo';
 
-    // Contador
     document.getElementById('resultado-contador').textContent = figs.length;
     document.getElementById('resultado-total').textContent = dados.total;
 
@@ -202,13 +259,13 @@
 
     catalogo.innerHTML = figs.map(renderFigurinha).join('');
 
-    // Liga eventos — clique no card alterna popup
-    const popupsAbertos = new Set();
+    // Eventos — clique no card alterna popup
     let popupAtual = null;
 
     catalogo.querySelectorAll('.figurinha').forEach((el) => {
       el.addEventListener('click', (e) => {
         if (e.target.closest('.figurinha__popup-btn')) return;
+
         // burst visual
         el.classList.remove('burst');
         void el.offsetWidth;
@@ -221,7 +278,6 @@
           popup.classList.remove('aberto');
           popupAtual = null;
         } else {
-          // Fecha qualquer outro popup aberto
           document.querySelectorAll('.figurinha__popup.aberto').forEach(p => p.classList.remove('aberto'));
           popup.classList.add('aberto');
           popupAtual = popup;
@@ -246,7 +302,6 @@
           definirEstado(id, atual === estadoBtn ? null : estadoBtn);
         }
 
-        // Fecha popup
         popup.classList.remove('aberto');
         popupAtual = null;
       });
@@ -264,49 +319,46 @@
 
   function renderFigurinha(fig) {
     const est = estado.estados.get(fig.id) || '';
-    const rarClass = `figurinha__tag--${fig.raridade}`;
     const isEsp = fig.categoria !== 'jogador' && fig.categoria !== 'tecnico';
     const categoriaLabel = fig.categoria ? fig.categoria.charAt(0).toUpperCase() + fig.categoria.slice(1) : '';
 
-    const estLabel = est ? (est === 'tenho' ? '✓' : est === 'repetida' ? '↻' : '✗') : '';
+    // Pega cores da bandeira da seleção
+    const bandeira = getBandeira(fig.selecao);
+    const cores = bandeira ? bandeira.cores : CORES_PADRAO;
+    const tipo = bandeira ? bandeira.tipo : 'faixas-h';
 
-    // Layout diferente por modo
-    if (estado.modo === 'minimal') {
-      return `<article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)} — ${escapeHtml(fig.selecao || '')}">
-        <div class="figurinha__img">${estLabel ? `<span class="figurinha__marca figurinha__marca--${est}">${estLabel}</span>` : ''}
-        <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
-        </div></article>`;
-    }
+    // Gera o escudo SVG inline (mini)
+    const escudoSvg = gerarMiniEscudo(cores, tipo, fig.id);
 
-    if (estado.modo === 'album') {
-      return `<article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}" title="${escapeHtml(fig.nome)}">
-        <div class="figurinha__img">${estLabel ? `<span class="figurinha__marca figurinha__marca--${est}">${estLabel}</span>` : ''}
-        <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
-        </div></article>`;
-    }
+    // Selo de raridade
+    const seloRar = fig.raridade === 'lendaria' ? '<span class="fig__selo fig__selo--lenda">&#9733;</span>'
+      : fig.raridade === 'rara' ? '<span class="fig__selo fig__selo--rara">&#9670;</span>'
+      : '';
 
-    // detalhada
+    const estLabel = est === 'tenho' ? '&#10003;' : est === 'repetida' ? '&#8635;' : est === 'falta' ? '&#10007;' : '';
+
     return `
       <article class="figurinha" data-id="${fig.id}" data-estado="${est}" data-raridade="${fig.raridade}">
-        <div class="figurinha__img">
-          <img src="${fig.urlImagem}" alt="${escapeHtml(fig.nome)}" loading="lazy" />
-          <span class="figurinha__marca figurinha__marca--${est || 'none'}">${est === 'tenho' ? '✓' : est === 'repetida' ? '↻' : est === 'falta' ? '✗' : ''}</span>
-          <div class="figurinha__popup" id="popup-${fig.id}">
-            <span class="figurinha__popup-label">Status</span>
-            <button class="figurinha__popup-btn ${est === 'tenho' ? 'ativo' : ''}" data-estado="tenho" type="button">✓ Tenho</button>
-            <button class="figurinha__popup-btn ${est === 'repetida' ? 'ativo' : ''}" data-estado="repetida" type="button">↻ Repetida</button>
-            <button class="figurinha__popup-btn ${est === 'falta' ? 'ativo' : ''}" data-estado="falta" type="button">✗ Falta</button>
-            ${est ? '<button class="figurinha__popup-btn figurinha__popup-btn--limpar" data-estado="none" type="button">— Limpar</button>' : ''}
+        <div class="fig__card">
+          <div class="fig__cabecalho">
+            <span class="fig__numero">${String(fig.numero).padStart(3, '0')}</span>
+            ${seloRar}
           </div>
-        </div>
-        <div class="figurinha__info">
-          <span class="figurinha__num">#${String(fig.numero).padStart(3, '0')}</span>
-          <h3 class="figurinha__nome">${escapeHtml(fig.nome)}</h3>
-          ${!isEsp ? `<span class="figurinha__selecao">${escapeHtml(fig.selecao)}</span>` : ''}
-          <div class="figurinha__meta">
-            ${fig.raridade !== 'comum' ? `<span class="figurinha__tag ${rarClass}">${fig.raridade}</span>` : ''}
-            ${fig.posicao && fig.posicao !== 'ESP' ? `<span class="figurinha__tag">${fig.posicao}</span>` : ''}
-            ${isEsp ? `<span class="figurinha__tag">${categoriaLabel}</span>` : ''}
+          <div class="fig__corpo">
+            ${escudoSvg}
+          </div>
+          <div class="fig__info">
+            <span class="fig__nome">${escapeHtml(fig.nome)}</span>
+            ${!isEsp ? `<span class="fig__selecao">${escapeHtml(fig.selecao)}</span>` : `<span class="fig__selecao">${categoriaLabel}</span>`}
+            ${fig.posicao && fig.posicao !== 'ESP' ? `<span class="fig__posicao">${fig.posicao}</span>` : ''}
+          </div>
+          ${est ? `<span class="fig__marca fig__marca--${est}">${estLabel}</span>` : ''}
+          <div class="figurinha__popup" id="popup-${fig.id}">
+            <span class="figurinha__popup-label">STATUS</span>
+            <button class="figurinha__popup-btn ${est === 'tenho' ? 'ativo' : ''}" data-estado="tenho" type="button">&#10003; Tenho</button>
+            <button class="figurinha__popup-btn ${est === 'repetida' ? 'ativo' : ''}" data-estado="repetida" type="button">&#8635; Repetida</button>
+            <button class="figurinha__popup-btn ${est === 'falta' ? 'ativo' : ''}" data-estado="falta" type="button">&#10007; Falta</button>
+            ${est ? '<button class="figurinha__popup-btn figurinha__popup-btn--limpar" data-estado="none" type="button">&#8212; Limpar</button>' : ''}
           </div>
         </div>
       </article>`;
@@ -396,26 +448,6 @@
     });
   }
 
-  function ligarModos() {
-    document.querySelectorAll('.filtros__modo-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const m = btn.dataset.modo;
-        if (!MODOS.includes(m)) return;
-        estado.modo = m;
-        salvarModo();
-        document.querySelectorAll('.filtros__modo-btn').forEach((b) => {
-          b.classList.toggle('ativo', b === btn);
-          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
-        });
-        renderizarCatalogo();
-      });
-    });
-    // marca o botão ativo inicial
-    document.querySelectorAll('.filtros__modo-btn').forEach((b) => {
-      b.classList.toggle('ativo', b.dataset.modo === estado.modo);
-    });
-  }
-
   // =================== HELPERS ===================
   function escapeHtml(str) {
     if (str == null) return '';
@@ -452,11 +484,9 @@
   function alternarTema() {
     const atual = document.documentElement.getAttribute('data-tema') || 'dark';
     const novo = atual === 'dark' ? 'light' : 'dark';
-    // Desabilita transição durante o toggle (evita bug de cache)
     document.documentElement.style.transition = 'none';
     document.documentElement.setAttribute('data-tema', novo);
     try { localStorage.setItem('album-copa-tema', novo); } catch (e) {}
-    // Força reflow + reabilita transição
     void document.documentElement.offsetHeight;
     requestAnimationFrame(() => {
       document.documentElement.style.transition = '';
@@ -506,6 +536,9 @@
     }
   }
 
+  // =================== EXPORTA getBandeira pro HTML ===================
+  window.getBandeira = getBandeira;
+
   // =================== INIT ===================
   function init() {
     if (!dados || !dados.figurinhas) {
@@ -514,15 +547,13 @@
     }
     carregarTema();
     carregarEstados();
-    carregarModo();
     popularFiltros();
     ligarFiltros();
-    ligarModos();
     initParticles();
     document.getElementById('btn-limpar').addEventListener('click', limparTudo);
     document.getElementById('btn-tema').addEventListener('click', alternarTema);
     renderizarTudo();
-    console.log(`✅ Álbum Copa 2026 inicializado: ${dados.total} figurinhas, ${dados.grupos.length} grupos, modo: ${estado.modo}`);
+    console.log(`✅ Álbum Copa 2026 inicializado: ${dados.total} figurinhas, ${dados.grupos.length} grupos`);
   }
 
   if (document.readyState === 'loading') {

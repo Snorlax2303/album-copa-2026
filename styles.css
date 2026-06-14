@@ -741,25 +741,10 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
 /* ============== CATÁLOGO ============== */
 .catalogo {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0;
   border: var(--grid-gutter);
   background: var(--bg-base);
-}
-
-.catalogo--detalhada {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-}
-
-.catalogo--album {
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-}
-
-.catalogo--minimal {
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-}
-
-.catalogo--showcase {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .figurinha {
@@ -767,39 +752,171 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   border-right: var(--grid-gutter-fraco);
   border-bottom: var(--grid-gutter-fraco);
   padding: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
   cursor: pointer;
   transition: var(--transicao);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  animation: fade-in 300ms ease-out;
+  animation-timeline: view();
+  animation-range: entry 5% cover 15%;
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 300ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
 }
 
 .figurinha:hover {
   background: var(--bg-superficie);
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px var(--cor-primaria), 0 4px 20px rgba(255, 223, 0, 0.08);
+  z-index: 2;
 }
 
-.catalogo--album .figurinha,
-.catalogo--minimal .figurinha {
-  border-right: var(--grid-gutter-fraco);
-  padding: 0.25rem;
-}
-
-.catalogo--detalhada .figurinha:nth-child(5n) { border-right: 0; }
-.catalogo--album .figurinha:nth-child(8n) { border-right: 0; }
-.catalogo--minimal .figurinha:nth-child(10n) { border-right: 0; }
-.catalogo--showcase .figurinha:nth-child(4n) { border-right: 0; }
+.figurinha:nth-child(5n) { border-right: 0; }
 
 @media (max-width: 640px) {
-  .catalogo--detalhada .figurinha,
-  .catalogo--showcase .figurinha,
-  .catalogo--album .figurinha,
-  .catalogo--minimal .figurinha {
-    border-right: 0;
-  }
+  .figurinha { border-right: 0; }
+  .catalogo { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }
 
+/* ============== CARD SIMPLIFICADO ============== */
+.fig__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  position: relative;
+  width: 100%;
+}
+
+.fig__cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0.125rem;
+}
+
+.fig__numero {
+  font-family: var(--fonte-mono);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--cor-primaria);
+  line-height: 1;
+}
+
+.fig__selo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  border-radius: 50%;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fig__selo--lenda {
+  background: var(--cor-lendaria);
+  color: var(--texto-inverso);
+  border: 1px solid var(--texto-inverso);
+}
+
+.fig__selo--rara {
+  background: var(--cor-rara);
+  color: var(--texto-inverso);
+  border: 1px solid var(--texto-inverso);
+}
+
+.fig__corpo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 0.2rem 0;
+}
+
+.fig__escudo {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+}
+
+.fig__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: center;
+}
+
+.fig__nome {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--texto-primario);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fig__selecao {
+  font-size: 0.65rem;
+  color: var(--texto-secundario);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fig__posicao {
+  font-family: var(--fonte-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  color: var(--texto-terciario);
+  background: var(--bg-destaque);
+  padding: 0.1rem 0.35rem;
+  margin-top: 0.1rem;
+}
+
+/* ============== MARCA DE ESTADO (canto) ============== */
+.fig__marca {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  z-index: 3;
+  border: 1px solid;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.fig__marca--tenho {
+  background: var(--cor-tenho);
+  color: var(--texto-inverso);
+  border-color: var(--cor-tenho);
+}
+
+.fig__marca--repetida {
+  background: var(--cor-repetida);
+  color: var(--texto-inverso);
+  border-color: var(--cor-repetida);
+}
+
+.fig__marca--falta {
+  background: var(--cor-falta);
+  color: var(--texto-inverso);
+  border-color: var(--cor-falta);
+}
+
+/* ============== BARRA DE ESTADO NO TOPO ============== */
 .figurinha[data-estado="tenho"] {
   background: var(--bg-superficie);
 }
@@ -812,6 +929,7 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   right: 0;
   height: 2px;
   background: var(--cor-tenho);
+  z-index: 1;
 }
 
 .figurinha[data-estado="repetida"]::before {
@@ -822,6 +940,7 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   right: 0;
   height: 2px;
   background: var(--cor-repetida);
+  z-index: 1;
 }
 
 .figurinha[data-estado="falta"]::before {
@@ -832,213 +951,7 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   right: 0;
   height: 2px;
   background: var(--cor-falta);
-}
-
-.figurinha__img {
-  background: var(--bg-superficie);
-  aspect-ratio: 200 / 280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  position: relative;
-}
-
-.figurinha__img img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
-.figurinha__selo {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  z-index: 2;
-  line-height: 1;
-}
-
-.figurinha__selo--lendaria {
-  background: var(--cor-lendaria);
-  color: var(--texto-inverso);
-  border: 1px solid var(--texto-inverso);
-}
-
-.figurinha__selo--rara {
-  background: var(--cor-rara);
-  color: var(--texto-inverso);
-  border: 1px solid var(--texto-inverso);
-}
-
-.figurinha__info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.25rem 0.125rem 0;
-}
-
-.figurinha__num {
-  font-family: var(--fonte-mono);
-  font-size: 0.65rem;
-  color: var(--texto-terciario);
-  letter-spacing: 0.05em;
-  font-weight: 500;
-}
-
-.figurinha__nome {
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-  color: var(--texto-primario);
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.figurinha__selecao {
-  font-size: 0.7rem;
-  color: var(--texto-secundario);
-  font-weight: 500;
-  letter-spacing: -0.005em;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.figurinha__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
-}
-
-.figurinha__tag {
-  font-family: var(--fonte-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--texto-secundario);
-  background: var(--bg-destaque);
-  padding: 0.125rem 0.375rem;
-  border: 1px solid transparent;
-  font-weight: 500;
-}
-
-.figurinha__tag--rara {
-  color: var(--cor-rara);
-  border-color: var(--cor-rara);
-  background: transparent;
-}
-
-.figurinha__tag--lendaria {
-  color: var(--texto-inverso);
-  background: var(--cor-lendaria);
-  border-color: var(--cor-lendaria);
-  font-weight: 700;
-}
-
-.figurinha__acoes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  border-top: var(--grid-gutter-fraco);
-  margin-top: auto;
-  padding-top: 0.5rem;
-}
-
-.figurinha__btn {
-  background: transparent;
-  border: 0;
-  border-right: var(--grid-gutter-fraco);
-  color: var(--texto-secundario);
-  font-family: var(--fonte-mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.4rem 0.25rem;
-  cursor: pointer;
-  transition: var(--transicao);
-}
-
-.figurinha__btn:last-child { border-right: 0; }
-
-.figurinha__btn:hover {
-  background: var(--bg-destaque);
-  color: var(--texto-primario);
-}
-
-.figurinha__btn.ativo[data-estado="tenho"] {
-  background: var(--cor-tenho);
-  color: var(--texto-inverso);
-}
-
-.figurinha__btn.ativo[data-estado="repetida"] {
-  background: var(--cor-repetida);
-  color: var(--texto-inverso);
-}
-
-.figurinha__btn.ativo[data-estado="falta"] {
-  background: var(--cor-falta);
-  color: var(--texto-inverso);
-}
-
-/* ============== MARCA DE ESTADO ============== */
-.figurinha__marca {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  line-height: 1;
-  border-radius: 0;
-  z-index: 3;
-  border: 1px solid;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.figurinha__marca--tenho {
-  background: var(--cor-tenho);
-  color: var(--texto-inverso);
-  border-color: var(--cor-tenho);
-}
-
-.figurinha__marca--repetida {
-  background: var(--cor-repetida);
-  color: var(--texto-inverso);
-  border-color: var(--cor-repetida);
-}
-
-.figurinha__marca--falta {
-  background: var(--cor-falta);
-  color: var(--texto-inverso);
-  border-color: var(--cor-falta);
-}
-
-.figurinha__marca--none,
-.figurinha__marca {
-  display: none;
-}
-
-.figurinha__marca--tenho,
-.figurinha__marca--repetida,
-.figurinha__marca--falta {
-  display: inline-flex;
+  z-index: 1;
 }
 
 /* ============== POPUP DE STATUS ============== */
@@ -1113,32 +1026,6 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   color: var(--cor-alerta);
 }
 
-/* Modo álbum — esconde info e popups */
-.catalogo--album .figurinha__info,
-.catalogo--album .figurinha__popup {
-  display: none;
-}
-
-/* Modo minimal — esconde TUDO exceto img */
-.catalogo--minimal .figurinha__info,
-.catalogo--minimal .figurinha__popup,
-.catalogo--minimal .figurinha__marca {
-  display: none;
-}
-
-.catalogo--minimal .figurinha__img {
-  aspect-ratio: 1;
-}
-
-/* Modo showcase — info completa, sem acoes */
-.catalogo--showcase .figurinha__acoes {
-  display: none;
-}
-
-.catalogo--showcase .figurinha__img {
-  aspect-ratio: 16 / 9;
-}
-
 /* ============== ESTADO VAZIO ============== */
 .estado-vazio {
   grid-column: 1 / -1;
@@ -1159,6 +1046,17 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
 .estado-vazio p {
   color: var(--texto-secundario);
   font-size: 0.85rem;
+}
+
+/* ============== BURST ============== */
+.figurinha.burst {
+  animation: burst-pop 300ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes burst-pop {
+  0% { transform: scale(1); box-shadow: 0 0 0 1px var(--cor-primaria); }
+  30% { transform: scale(1.02); box-shadow: 0 0 0 2px var(--cor-primaria), 0 0 15px rgba(255, 223, 0, 0.3); }
+  100% { transform: scale(1); }
 }
 
 /* ============== RODAPÉ ============== */
@@ -1243,37 +1141,6 @@ h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
   25% { transform: translate(10px, -30px); opacity: 0.25; }
   50% { transform: translate(-15px, -60px); opacity: 0.12; }
   75% { transform: translate(5px, -90px); opacity: 0.2; }
-}
-
-/* Scroll-driven: conforme o card entra na tela */
-.figurinha {
-  animation: fade-in 300ms ease-out;
-  animation-timeline: view();
-  animation-range: entry 5% cover 15%;
-}
-
-/* Mouse glow: borda ao passar */
-.figurinha {
-  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1),
-              box-shadow 300ms cubic-bezier(0.2, 0, 0, 1);
-  will-change: transform;
-}
-
-.figurinha:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 0 1px var(--cor-primaria), 0 4px 20px rgba(255, 223, 0, 0.08);
-  z-index: 2;
-}
-
-/* Burst no clique (via JS: adiciona classe .burst) */
-.figurinha.burst {
-  animation: burst-pop 300ms cubic-bezier(0.2, 0, 0, 1) forwards;
-}
-
-@keyframes burst-pop {
-  0% { transform: scale(1); box-shadow: 0 0 0 1px var(--cor-primaria); }
-  30% { transform: scale(1.02); box-shadow: 0 0 0 2px var(--cor-primaria), 0 0 15px rgba(255, 223, 0, 0.3); }
-  100% { transform: scale(1); }
 }
 
 /* Luva cinemática nas estações do ano */

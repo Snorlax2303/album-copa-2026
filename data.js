@@ -1117,6 +1117,7 @@
 
   // Expõe no escopo global
   global.AlbumCopa = global.AlbumCopa || {};
+  global.AlbumCopa.BANDEIRAS = BANDEIRAS;
   global.AlbumCopa.data = {
     figurinhas: FIGURINHAS,
     grupos: GRUPOS,
