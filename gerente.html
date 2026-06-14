@@ -248,6 +248,22 @@
     <div class="feedback" id="feedback"></div>
   </div>
 
+  <!-- ESPECIAIS RÁPIDO -->
+  <div class="input-area" style="border-color:rgba(212,175,55,0.15)">
+    <label style="color:#d4af37">🏆 Especiais</label>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem">
+      <span style="font-size:0.6rem;color:var(--texto-terciario);font-family:var(--fonte-mono);width:100%;margin-bottom:0.25rem">Panini · Copa 2026 · Cidades-Sede · História</span>
+      <button class="especial-btn" data-sel="Panini" data-nums="1">Panini #1</button>
+      <button class="especial-btn" data-sel="Copa 2026" data-nums="2,3,4,5,6">Copa 2-6</button>
+      <button class="especial-btn" data-sel="Cidades-Sede" data-nums="7,8,9">Sedes 7-9</button>
+      <button class="especial-btn" data-sel="História" data-nums="1024,1025,1026,1027,1028,1029,1030,1031,1032,1033,1034">História</button>
+    </div>
+    <div style="display:flex;gap:0.4rem;margin-top:0.4rem">
+      <button class="btn-marcar-tenho" data-acao="tenho" style="flex:1;padding:0.4rem;border:1px solid var(--cor-tenho);background:transparent;color:var(--cor-tenho);font-size:0.7rem;font-weight:600;cursor:pointer">✓ Marcar Tenho</button>
+      <button class="btn-marcar-repetida" data-acao="repetida" style="flex:1;padding:0.4rem;border:1px solid var(--cor-repetida);background:transparent;color:var(--cor-repetida);font-size:0.7rem;font-weight:600;cursor:pointer">↻ Marcar Repetida</button>
+    </div>
+  </div>
+
   <!-- ÚLTIMAS MARCADAS -->
   <div id="ultimas-container" class="ultimas-area">
     <span style="color:var(--texto-terciario);font-size:0.7rem">Últimas marcadas aparecem aqui</span>
@@ -322,7 +338,7 @@
       // Extrair selecoes unicas na ordem do album
       const vistas = new Set();
       dados.figurinhas.forEach(f => {
-        if (!vistas.has(f.selecao) && f.categoria === 'jogador') {
+        if (!vistas.has(f.selecao) && (f.categoria === 'jogador' || f.categoria === 'tecnico' || ['Panini','Copa 2026','Cidades-Sede','História'].includes(f.selecao))) {
           vistas.add(f.selecao);
           selecoes.push(f.selecao);
         }
@@ -338,7 +354,7 @@
           dados = window.AlbumCopa.data;
           const vistas = new Set();
           dados.figurinhas.forEach(f => {
-            if (!vistas.has(f.selecao) && f.categoria === 'jogador') {
+            if (!vistas.has(f.selecao) && (f.categoria === 'jogador' || f.categoria === 'tecnico' || ['Panini','Copa 2026','Cidades-Sede','História'].includes(f.selecao))) {
               vistas.add(f.selecao);
               selecoes.push(f.selecao);
             }
@@ -388,7 +404,15 @@
 
   function getFigurinhas(selecao, numeros) {
     if (!dados) return [];
-    // Mapear codigo da selecao (Brasil -> BRA)
+    // Para especiais (Panini, Copa 2026, Cidades-Sede, História): usa o numero sequencial
+    const selecoesEspeciais = ['Panini','Copa 2026','Cidades-Sede','História'];
+    if (selecoesEspeciais.includes(selecao)) {
+      return dados.figurinhas.filter(f => {
+        if (f.selecao !== selecao) return false;
+        return numeros.includes(f.numero);
+      });
+    }
+    // Para seleções normais: mapear code (BRA1 -> 1)
     const codeMap = {
       'México':'MEX','África do Sul':'RSA','Coreia do Sul':'KOR','Tchéquia':'CZE',
       'Canadá':'CAN','Bósnia':'BIH','Catar':'QAT','Suíça':'SUI','Brasil':'BRA',
@@ -672,10 +696,21 @@
     });
 
     // Botões de ação (Tenho/Repetida)
-    document.querySelectorAll('.input-actions button').forEach(btn => {
+    document.querySelectorAll('.input-actions button, .especial-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.input-actions button').forEach(b => b.classList.remove('ativo'));
         btn.classList.add('ativo');
+      });
+    });
+
+    // Botões de especial
+    document.querySelectorAll('.especial-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sel = btn.dataset.sel;
+        const nums = btn.dataset.nums.split(',').map(Number);
+        // Marcar como tenho diretamente
+        document.getElementById('sel-selecao').value = sel;
+        marcar(sel, nums, 'tenho');
       });
     });
 

@@ -9,60 +9,83 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,500;0,6..72,700;1,6..72,300&display=swap" rel="stylesheet" />
-  <script src="./data.js?v=3" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="./data.js?v=3"></script>
+
   <title>Copa 2026 — Álbum de Figurinhas</title>
+
   <style>
-    /* ===== RESET ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --easing: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg-deep: #0c0c0d;
+      --bg-base: #111113;
+      --bg-elevated: #18181b;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --fg: #f0ede8;
+      --fg-muted: rgba(240,237,232,0.45);
+      --fg-dim: rgba(240,237,232,0.18);
+      --accent: #d4af37;
+      --accent-glow: rgba(212,175,55,0.18);
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(255,255,255,0.13);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --font-display: 'Playfair Display', 'Georgia', serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
     html { -webkit-text-size-adjust: 100%; }
+
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #0c0c0d;
-      color: #f0ede8;
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--fg);
       min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ===== BACKGROUND TEXTURE ===== */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(60,45,20,0.15) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212,175,55,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(40,25,10,0.2) 0%, transparent 50%);
+        radial-gradient(ellipse 85% 50% at 50% -10%, rgba(180,150,60,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 35% at 85% 95%, rgba(212,175,55,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 15% 85%, rgba(100,80,30,0.12) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ===== NOISE OVERLAY ===== */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      opacity: 0.025;
+      opacity: 0.02;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 256px 256px;
+      background-size: 200px 200px;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ===== CONTAINER ===== */
     .container {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 420px;
-      padding: 2rem 1.5rem 2.5rem;
+      max-width: 400px;
+      padding: 2.5rem 1.5rem 2.5rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2rem;
+      gap: 1.75rem;
     }
 
     /* ===== LOGO ===== */
@@ -70,56 +93,51 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.75rem;
-      animation: fade-slide 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+      gap: 0.6rem;
+      animation: fade-up 0.9s var(--easing) both;
     }
 
     .logo-icon {
-      width: 80px;
-      height: 80px;
+      width: 72px;
+      height: 72px;
       position: relative;
     }
 
-    .logo-icon svg {
-      width: 100%;
-      height: 100%;
-    }
+    .logo-icon svg { width: 100%; height: 100%; }
 
-    .logo-text {
-      text-align: center;
-    }
+    .logo-text { text-align: center; }
 
     .logo-text h1 {
-      font-family: 'Newsreader', 'Georgia', serif;
-      font-weight: 300;
-      font-size: 1.8rem;
-      letter-spacing: -0.02em;
-      line-height: 1.1;
-      color: #f0ede8;
-    }
-
-    .logo-text h1 em {
-      font-style: italic;
-      font-weight: 300;
-      color: #d4af37;
-    }
-
-    .logo-text .sub {
-      font-size: 0.7rem;
+      font-family: var(--font-display);
       font-weight: 400;
-      letter-spacing: 0.25em;
+      font-size: 1.6rem;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--fg);
+    }
+
+    .logo-text h1 i {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .logo-text .subtitle {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: rgba(240, 237, 232, 0.35);
+      color: var(--fg-dim);
       margin-top: 0.3rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-mono);
     }
 
     /* ===== DIVIDER ===== */
     .divider {
-      width: 2rem;
+      width: 2.5rem;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
-      animation: fade-slide 1s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+      animation: fade-up 0.9s 0.12s var(--easing) both;
     }
 
     /* ===== STATS ===== */
@@ -128,48 +146,48 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
-      animation: fade-slide 1s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fade-up 0.9s 0.2s var(--easing) both;
     }
 
     .stat {
       text-align: center;
-      padding: 0.75rem 0.25rem;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.02);
-      transition: border-color 0.3s;
+      padding: 0.65rem 0.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: border-color 0.35s var(--easing);
     }
 
-    .stat:hover {
-      border-color: rgba(255,255,255,0.12);
-    }
+    .stat:active { transform: scale(0.97); }
 
     .stat .num {
       display: block;
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.02em;
-      line-height: 1;
+      line-height: 1.1;
+      font-family: var(--font-display);
     }
 
     .stat .num.tenho { color: #4caf50; }
-    .stat .num.repetida { color: #ff9800; }
+    .stat .num.rep { color: #ff9800; }
     .stat .num.falta { color: #ef5350; }
 
     .stat .label {
       display: block;
-      font-size: 0.55rem;
+      font-size: 0.5rem;
       font-weight: 500;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(240, 237, 232, 0.3);
-      margin-top: 0.3rem;
+      color: var(--fg-dim);
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
     }
 
     /* ===== PROGRESS ===== */
     .progress-wrap {
       width: 100%;
-      animation: fade-slide 1s 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation: fade-up 0.9s 0.28s var(--easing) both;
     }
 
     .progress-header {
@@ -180,18 +198,20 @@
     }
 
     .progress-header .pct {
-      font-family: 'Newsreader', 'Georgia', serif;
-      font-size: 2rem;
-      font-weight: 300;
-      color: #d4af37;
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--accent);
       line-height: 1;
+      letter-spacing: -0.02em;
     }
 
     .progress-header .meta {
-      font-size: 0.6rem;
-      color: rgba(240, 237, 232, 0.25);
+      font-size: 0.55rem;
+      color: var(--fg-dim);
       letter-spacing: 0.05em;
       font-weight: 400;
+      font-family: var(--font-mono);
     }
 
     .progress-bar {
@@ -204,9 +224,10 @@
 
     .progress-bar .fill {
       height: 100%;
-      background: #d4af37;
+      background: var(--accent);
       width: 0%;
-      transition: width 800ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition: width 800ms var(--easing);
+      box-shadow: 0 0 8px var(--accent-glow);
     }
 
     /* ===== CARDS ===== */
@@ -214,23 +235,24 @@
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
-      animation: fade-slide 1s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      gap: 0.6rem;
+      animation: fade-up 0.9s 0.38s var(--easing) both;
     }
 
     .card {
       display: flex;
       align-items: center;
       gap: 1rem;
-      padding: 1.25rem 1.25rem;
+      padding: 1rem 1.1rem;
       text-decoration: none;
       color: inherit;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.015);
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.4s var(--easing);
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      border-radius: var(--radius);
     }
 
     .card::before {
@@ -238,189 +260,169 @@
       position: absolute;
       inset: 0;
       opacity: 0;
-      transition: opacity 0.4s;
+      transition: opacity 0.4s var(--easing);
+      border-radius: var(--radius);
     }
 
     .card--gerente::before {
-      background: linear-gradient(135deg, rgba(255,152,0,0.04), transparent);
+      background: linear-gradient(135deg, rgba(255,152,0,0.06), transparent 70%);
     }
-
     .card--album::before {
-      background: linear-gradient(135deg, rgba(76,175,80,0.04), transparent);
+      background: linear-gradient(135deg, rgba(76,175,80,0.06), transparent 70%);
     }
 
     .card:hover {
-      border-color: rgba(255,255,255,0.15);
+      border-color: var(--border-hover);
       transform: translateY(-2px);
+      background: var(--surface-hover);
     }
 
-    .card:hover::before {
-      opacity: 1;
-    }
-
-    .card:active {
-      transform: translateY(0);
-    }
+    .card:hover::before { opacity: 1; }
+    .card:active { transform: translateY(0) scale(0.99); }
 
     .card-icon {
-      width: 2.5rem;
-      height: 2.5rem;
+      width: 2.25rem;
+      height: 2.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      font-size: 1.2rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      transition: border-color 0.3s var(--easing);
+      border-radius: var(--radius-sm);
     }
 
     .card--gerente .card-icon {
       color: #ff9800;
       border-color: rgba(255,152,0,0.2);
     }
-
     .card--album .card-icon {
       color: #4caf50;
       border-color: rgba(76,175,80,0.2);
     }
 
-    .card-body {
-      flex: 1;
-      min-width: 0;
-    }
+    .card-body { flex: 1; min-width: 0; }
 
     .card-body .title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       display: block;
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.1rem;
     }
 
     .card-body .desc {
-      font-size: 0.7rem;
-      color: rgba(240, 237, 232, 0.35);
+      font-size: 0.65rem;
+      color: var(--fg-muted);
       font-weight: 400;
     }
 
     .card-arrow {
-      color: rgba(240, 237, 232, 0.15);
-      font-size: 0.9rem;
-      transition: all 0.3s;
+      color: var(--fg-dim);
+      font-size: 0.85rem;
+      transition: all 0.35s var(--easing);
       flex-shrink: 0;
+      font-family: var(--font-display);
     }
 
     .card:hover .card-arrow {
-      color: rgba(240, 237, 232, 0.5);
-      transform: translateX(3px);
+      color: var(--fg-muted);
+      transform: translateX(4px);
     }
 
-    .card--gerente:hover .card-icon {
-      border-color: rgba(255,152,0,0.4);
-    }
+    .card--gerente:hover .card-icon { border-color: rgba(255,152,0,0.4); }
+    .card--album:hover .card-icon { border-color: rgba(76,175,80,0.4); }
 
-    .card--album:hover .card-icon {
-      border-color: rgba(76,175,80,0.4);
-    }
-
-    /* ===== FOOTER ===== */
-    .footer {
-      font-size: 0.55rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(240, 237, 232, 0.12);
-      animation: fade-slide 1s 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
-      font-weight: 400;
-      text-align: center;
-    }
-
-    /* ===== INSTALL BADGE ===== */
+    /* ===== INSTALL ===== */
     .install-badge {
       display: none;
       cursor: pointer;
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       letter-spacing: 0.08em;
       font-weight: 500;
-      color: rgba(240, 237, 232, 0.25);
-      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--fg-dim);
+      border: 1px solid var(--border);
       padding: 0.35rem 1rem;
-      transition: all 0.3s;
-      animation: fade-slide 1s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      transition: all 0.35s var(--easing);
+      animation: fade-up 0.9s 0.5s var(--easing) both;
       background: none;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-mono);
+      border-radius: 0;
     }
 
     .install-badge:hover {
       border-color: rgba(212,175,55,0.3);
-      color: #d4af37;
+      color: var(--accent);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-dim);
+      opacity: 0.5;
+      animation: fade-up 0.9s 0.55s var(--easing) both;
+      font-weight: 400;
+      text-align: center;
+      font-family: var(--font-mono);
     }
 
     /* ===== ANIMATIONS ===== */
-    @keyframes fade-slide {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* ===== SPLASH (primeira visita) ===== */
-    #splash {
-      animation: splash-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    @keyframes splash-in {
-      from { opacity: 0; transform: scale(0.96); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 360px) {
       .container { padding: 1.5rem 1rem; gap: 1.5rem; }
-      .logo-icon { width: 64px; height: 64px; }
-      .logo-text h1 { font-size: 1.4rem; }
-      .stat .num { font-size: 1.2rem; }
-      .card { padding: 1rem; }
+      .logo-icon { width: 60px; height: 60px; }
+      .logo-text h1 { font-size: 1.35rem; }
+      .stat .num { font-size: 1.1rem; }
+      .card { padding: 0.85rem; }
+      .progress-header .pct { font-size: 1.5rem; }
     }
 
-    @media (min-width: 600px) {
-      .container { max-width: 500px; padding: 3rem 2rem; }
-      .logo-icon { width: 96px; height: 96px; }
+    @media (min-width: 540px) {
+      .container { max-width: 480px; padding: 3rem 2rem; }
+      .logo-icon { width: 84px; height: 84px; }
+      .logo-text h1 { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
-<div class="container" id="app">
-  <!-- ===== LOGO ===== -->
+<div class="container">
+  <!-- LOGO -->
   <div class="logo">
     <div class="logo-icon">
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="96" height="96" rx="10" stroke="#d4af37" stroke-width="2" fill="none"/>
-        <circle cx="50" cy="38" r="24" stroke="#d4af37" stroke-width="2.5" fill="none"/>
-        <path d="M50 16L68 34L63 58L37 58L32 34Z" fill="#FFDF00" opacity="0.9"/>
-        <circle cx="50" cy="38" r="5" fill="#0c0c0d"/>
-        <text x="50" y="74" font-family="Inter, sans-serif" font-size="11" font-weight="800" fill="#d4af37" text-anchor="middle" letter-spacing="4">COPA</text>
-        <text x="50" y="88" font-family="Inter, sans-serif" font-size="8" font-weight="600" fill="rgba(240,237,232,0.3)" text-anchor="middle" letter-spacing="2">2026</text>
+      <svg viewBox="0 0 100 100" fill="none">
+        <rect x="2.5" y="2.5" width="95" height="95" rx="10" stroke="#d4af37" stroke-width="1.8" fill="none"/>
+        <circle cx="50" cy="36" r="22" stroke="#d4af37" stroke-width="2" fill="none"/>
+        <path d="M50 16L67 33L62 55L38 55L33 33Z" fill="#FFDF00" opacity="0.85"/>
+        <circle cx="50" cy="36" r="4.5" fill="#0c0c0d"/>
+        <text x="50" y="72" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#d4af37" text-anchor="middle" letter-spacing="5">COPA</text>
+        <text x="50" y="85" font-family="JetBrains Mono, monospace" font-size="6" font-weight="400" fill="rgba(240,237,232,0.25)" text-anchor="middle" letter-spacing="3">2026</text>
       </svg>
     </div>
     <div class="logo-text">
-      <h1>álbum <em>copa 2026</em></h1>
-      <div class="sub">676 figurinhas · 48 seleções</div>
+      <h1>álbum <i>copa 2026</i></h1>
+      <div class="subtitle">676 figurinhas · 48 seleções</div>
     </div>
   </div>
 
   <div class="divider"></div>
 
-  <!-- ===== STATS ===== -->
+  <!-- STATS -->
   <div class="stats">
     <div class="stat">
       <span class="num tenho" id="st-tenho">—</span>
       <span class="label">Tenho</span>
     </div>
     <div class="stat">
-      <span class="num repetida" id="st-repetida">—</span>
+      <span class="num rep" id="st-repetida">—</span>
       <span class="label">Repetidas</span>
     </div>
     <div class="stat">
@@ -429,10 +431,10 @@
     </div>
   </div>
 
-  <!-- ===== PROGRESS ===== -->
+  <!-- PROGRESS -->
   <div class="progress-wrap">
     <div class="progress-header">
-      <span class="pct" id="st-pct">0%</span>
+      <span class="pct" id="st-pct">—</span>
       <span class="meta"><span id="st-tenho-count">0</span> / <span id="st-total">676</span></span>
     </div>
     <div class="progress-bar">
@@ -440,13 +442,13 @@
     </div>
   </div>
 
-  <!-- ===== CARDS ===== -->
+  <!-- CARDS -->
   <div class="cards">
     <a href="gerente.html" class="card card--gerente">
       <div class="card-icon">✦</div>
       <div class="card-body">
         <span class="title">Gerenciar coleção</span>
-        <span class="desc">Marcar figurinhas &middot; Trocas &middot; Input por código</span>
+        <span class="desc">Marcar figurinhas · Trocas · Input por código</span>
       </div>
       <span class="card-arrow">→</span>
     </a>
@@ -454,14 +456,14 @@
       <div class="card-icon">◈</div>
       <div class="card-body">
         <span class="title">Abrir o álbum</span>
-        <span class="desc">Visualizar catálogo &middot; Dashboard &middot; Filtros</span>
+        <span class="desc">Visualizar catálogo · Dashboard · Filtros</span>
       </div>
       <span class="card-arrow">→</span>
     </a>
   </div>
 
-  <!-- ===== INSTALL ===== -->
-  <button class="install-badge" id="btn-install">+ Instalar app</button>
+  <!-- INSTALL -->
+  <button class="install-badge" id="btn-install">+ instalar app</button>
 
   <div class="footer">Álbum Copa do Mundo 2026</div>
 </div>
@@ -477,7 +479,6 @@
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true;
 
-  // ===== CARREGAR STATS =====
   function carregarStats() {
     const estados = new Map();
     try {
@@ -504,7 +505,6 @@
     document.getElementById('st-bar').style.width = pct + '%';
   }
 
-  // ===== INSTALL =====
   let deferredPrompt = null;
 
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -528,32 +528,26 @@
     document.getElementById('btn-install').style.display = 'none';
   });
 
-  // ===== SERVICE WORKER =====
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
-  // ===== INIT =====
-  // Esperar data.js carregar caso venha direto da NFC
-  const tryLoad = setInterval(() => {
+  function init() {
     if (window.AlbumCopa && window.AlbumCopa.data) {
-      clearInterval(tryLoad);
       carregarStats();
+    } else {
+      const check = setInterval(() => {
+        if (window.AlbumCopa && window.AlbumCopa.data) {
+          clearInterval(check);
+          carregarStats();
+        }
+      }, 200);
+      setTimeout(() => clearInterval(check), 3000);
     }
-  }, 200);
+  }
 
-  // Fallback: stats sem AlbumCopa
-  setTimeout(() => {
-    clearInterval(tryLoad);
-    if (!window.AlbumCopa) {
-      // Tenta carregar data.js dinamicamente
-      const s = document.createElement('script');
-      s.src = './data.js?v=3';
-      s.onload = carregarStats;
-      s.onerror = carregarStats; // fallback com TOTAL
-      document.head.appendChild(s);
-    }
-  }, 1000);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
 </script>
 </body>
