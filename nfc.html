@@ -6,7 +6,7 @@
   <meta name="description" content="Álbum Copa 2026 — 676 figurinhas. Gerencie sua coleção, troque repetidas, complete o álbum." />
   <meta name="theme-color" content="#0c0c0d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <link rel="manifest" href="manifest.json" />
+  <link rel="manifest" href="manifest-nfc.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -476,9 +476,94 @@
   const STORAGE_KEY = 'album-copa-2026-v3';
   const TOTAL = window.AlbumCopa ? window.AlbumCopa.data.total : 676;
 
+  // ============== SMART ROUTING ==============
+  // Se já está no PWA (standalone) → mostra conteúdo normal
+  // Se NÃO está no PWA → detecta se é primeira vez e força instalação
+
   const isInstalled = window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true;
+
+  const jaViuNfc = localStorage.getItem('album-copa-nfc-visto') === 'true';
+
+  let deferredPrompt = null;
+  let installResolved = false;
+
+  // ============== TELA DE INSTALAÇÃO ==============
+
+  function mostrarTelaInstalacao() {
+    const container = document.getElementById('app');
+    container.innerHTML = `
+      <div class="install-screen" style="
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        min-height:80dvh; text-align:center; gap:2rem; padding:2rem;
+        animation: fade-up 0.9s cubic-bezier(0.16,1,0.3,1) both;
+      ">
+        <div class="logo-icon" style="width:96px;height:96px;margin-bottom:0.5rem">
+          <svg viewBox="0 0 100 100" fill="none">
+            <rect x="2.5" y="2.5" width="95" height="95" rx="10" stroke="#d4af37" stroke-width="1.8" fill="none"/>
+            <circle cx="50" cy="36" r="22" stroke="#d4af37" stroke-width="2" fill="none"/>
+            <path d="M50 16L67 33L62 55L38 55L33 33Z" fill="#FFDF00" opacity="0.85"/>
+            <circle cx="50" cy="36" r="4.5" fill="#0c0c0d"/>
+            <text x="50" y="72" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#d4af37" text-anchor="middle" letter-spacing="5">COPA</text>
+            <text x="50" y="85" font-family="JetBrains Mono, monospace" font-size="6" font-weight="400" fill="rgba(240,237,232,0.25)" text-anchor="middle" letter-spacing="3">2026</text>
+          </svg>
+        </div>
+        <h1 style="font-family:'Playfair Display',serif;font-weight:400;font-size:1.8rem;color:#f0ede8;line-height:1.2">
+          álbum <i style="color:#d4af37;font-style:italic">copa 2026</i>
+        </h1>
+        <p style="color:rgba(240,237,232,0.45);font-size:0.8rem;max-width:300px;line-height:1.5">
+          Instale o app para gerenciar sua coleção de figurinhas de qualquer lugar.
+          Seus dados ficam salvos na nuvem.
+        </p>
+        <button id="btn-instalar-agora" style="
+          padding:1rem 2.5rem; font-size:0.9rem; font-weight:600;
+          background:transparent; border:1px solid #d4af37; color:#d4af37;
+          cursor:pointer; transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+          font-family:'Inter',sans-serif; letter-spacing:0.05em;
+        ">📲 Instalar app</button>
+        <button id="btn-pular-instalar" style="
+          background:none; border:none; color:rgba(240,237,232,0.2);
+          font-size:0.65rem; cursor:pointer; font-family:'JetBrains Mono',monospace;
+          text-decoration:underline; transition:color 0.3s;
+        ">depois eu instalo</button>
+      </div>
+    `;
+
+    // Se tiver Motion, anima o botão
+    if (typeof Motion !== 'undefined') {
+      Motion.hover(document.getElementById('btn-instalar-agora'), {
+        onEnter: () => Motion.animate(document.getElementById('btn-instalar-agora'), { y: -2, scale: 1.02 }, { duration: 0.2 }),
+        onLeave: () => Motion.animate(document.getElementById('btn-instalar-agora'), { y: 0, scale: 1 }, { duration: 0.2 })
+      });
+    }
+
+    document.getElementById('btn-instalar-agora').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          localStorage.setItem('album-copa-nfc-visto', 'true');
+          installResolved = true;
+          // Recarregar pra mostrar conteudo
+          location.reload();
+        }
+      } else {
+        // Fallback: instrucao manual
+        document.getElementById('btn-instalar-agora').textContent = '📋 Abra o menu do navegador → Adicionar à tela inicial';
+        document.getElementById('btn-instalar-agora').style.fontSize = '0.7rem';
+        document.getElementById('btn-instalar-agora').style.padding = '0.8rem 1.5rem';
+      }
+    });
+
+    document.getElementById('btn-pular-instalar').addEventListener('click', () => {
+      localStorage.setItem('album-copa-nfc-visto', 'true');
+      installResolved = true;
+      mostrarConteudo();
+    });
+  }
+
+  // ============== CONTEÚDO NORMAL ==============
 
   function carregarStats() {
     const estados = new Map();
@@ -492,118 +577,82 @@
       }
     } catch(e) {}
 
-    const tenho = [...estados.values()].filter(v => v === 'tenho').length;
-    const repetida = [...estados.values()].filter(v => v === 'repetida').length;
-    const falta = Math.max(0, TOTAL - tenho - repetida);
-    const pct = TOTAL ? Math.round((tenho / TOTAL) * 100) : 0;
-
-    document.getElementById('st-tenho').textContent = tenho || '0';
-    document.getElementById('st-repetida').textContent = repetida || '0';
+    document.getElementById('st-tenho').textContent = [...estados.values()].filter(v => v === 'tenho').length || '0';
+    document.getElementById('st-repetida').textContent = [...estados.values()].filter(v => v === 'repetida').length || '0';
+    const falta = Math.max(0, TOTAL - [...estados.values()].filter(v => v === 'tenho').length - [...estados.values()].filter(v => v === 'repetida').length);
     document.getElementById('st-falta').textContent = falta || '0';
+    const pct = TOTAL ? Math.round(([...estados.values()].filter(v => v === 'tenho').length / TOTAL) * 100) : 0;
     document.getElementById('st-pct').textContent = pct + '%';
-    document.getElementById('st-tenho-count').textContent = tenho || '0';
+    document.getElementById('st-tenho-count').textContent = [...estados.values()].filter(v => v === 'tenho').length || '0';
     document.getElementById('st-total').textContent = TOTAL;
     document.getElementById('st-bar').style.width = pct + '%';
   }
 
-  let deferredPrompt = null;
+  function mostrarConteudo() {
+    document.querySelector('.container').style.display = 'flex';
+    initAnimacoes();
+    carregarStats();
+  }
+
+  // ============== INSTALL LISTENER ==============
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    if (!isInstalled) {
-      document.getElementById('btn-install').style.display = 'inline-block';
-    }
   });
 
   window.addEventListener('appinstalled', () => {
+    localStorage.setItem('album-copa-nfc-visto', 'true');
     deferredPrompt = null;
-    document.getElementById('btn-install').style.display = 'none';
-  });
-
-  document.getElementById('btn-install').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('btn-install').style.display = 'none';
   });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
+  // ============== ANIMAÇÕES ==============
+
   function initAnimacoes() {
-    // Stagger principal com Motion
-    const items = document.querySelectorAll('.anim-item');
-    if (typeof Motion !== 'undefined') {
-      items.forEach((el, i) => {
-        Motion.animate(el, { opacity: [0, 1], y: [14, 0] }, {
-          duration: 0.7,
-          delay: Motion.stagger(0.08, { from: i }),
-          easing: [0.16, 1, 0.3, 1]
-        });
+    if (typeof Motion === 'undefined') return;
+    document.querySelectorAll('.anim-item').forEach((el, i) => {
+      Motion.animate(el, { opacity: [0, 1], y: [14, 0] }, {
+        duration: 0.7, delay: Motion.stagger(0.08, { from: i }), easing: [0.16, 1, 0.3, 1]
       });
-
-      // Hover + Press nos cards
-      document.querySelectorAll('.anim-card').forEach(card => {
-        Motion.hover(card, {
-          onEnter: () => Motion.animate(card, { y: -4, scale: 1.01 }, { duration: 0.25, easing: [0.16,1,0.3,1] }),
-          onLeave: () => Motion.animate(card, { y: 0, scale: 1 }, { duration: 0.25, easing: [0.16,1,0.3,1] })
-        });
-        Motion.press(card, {
-          onStart: () => Motion.animate(card, { scale: 0.98 }, { duration: 0.1 }),
-          onEnd: () => Motion.animate(card, { scale: 1 }, { duration: 0.2, easing: Motion.spring({ stiffness: 300, damping: 15 }) })
-        });
+    });
+    document.querySelectorAll('.anim-card').forEach(card => {
+      Motion.hover(card, {
+        onEnter: () => Motion.animate(card, { y: -4, scale: 1.01 }, { duration: 0.25, easing: [0.16,1,0.3,1] }),
+        onLeave: () => Motion.animate(card, { y: 0, scale: 1 }, { duration: 0.25, easing: [0.16,1,0.3,1] })
       });
-
-      // Press no install badge
-      const installBtn = document.getElementById('btn-install');
-      if (installBtn) {
-        Motion.press(installBtn, {
-          onStart: () => Motion.animate(installBtn, { scale: 0.97 }, { duration: 0.1 }),
-          onEnd: () => Motion.animate(installBtn, { scale: 1 }, { duration: 0.2 })
-        });
-      }
-    } else {
-      // Fallback sem Motion
-      items.forEach((el, i) => {
-        setTimeout(() => {
-          el.style.opacity = '1';
-          el.style.transform = 'translateY(0)';
-          el.style.transition = 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
-        }, i * 80);
+      Motion.press(card, {
+        onStart: () => Motion.animate(card, { scale: 0.98 }, { duration: 0.1 }),
+        onEnd: () => Motion.animate(card, { scale: 1 }, { duration: 0.2, easing: Motion.spring({ stiffness: 300, damping: 15 }) })
       });
+    });
+    const logoIcon = document.getElementById('logo-icon');
+    if (logoIcon) {
+      setTimeout(() => {
+        Motion.animate(logoIcon, { scale: [1, 1.03, 1] }, {
+          duration: 2.5, easing: [0.16, 1, 0.3, 1], repeat: Infinity
+        });
+      }, 1000);
     }
   }
 
-  function init() {
-    // Animar a logo-icon com um pulse sutil
-    setTimeout(() => {
-      if (typeof Motion !== 'undefined') {
-        const logoIcon = document.getElementById('logo-icon');
-        if (logoIcon) {
-          Motion.animate(logoIcon, { scale: [1, 1.03, 1] }, {
-            duration: 2.5,
-            easing: [0.16, 1, 0.3, 1],
-            repeat: Infinity
-          });
-        }
-      }
-    }, 1000);
+  // ============== INIT ==============
 
-    if (window.AlbumCopa && window.AlbumCopa.data) {
-      carregarStats();
-      initAnimacoes();
+  function init() {
+    if (isInstalled) {
+      // PWA já instalado → mostra conteúdo direto
+      mostrarConteudo();
+    } else if (!jaViuNfc) {
+      // Primeira vez → mostra tela de instalação
+      document.querySelector('.container').style.display = 'none';
+      mostrarTelaInstalacao();
     } else {
-      const check = setInterval(() => {
-        if (window.AlbumCopa && window.AlbumCopa.data) {
-          clearInterval(check);
-          carregarStats();
-          initAnimacoes();
-        }
-      }, 200);
-      setTimeout(() => { clearInterval(check); initAnimacoes(); }, 3000);
+      // Já viu mas não instalou → mostra conteúdo + badge de install
+      document.getElementById('btn-install').style.display = 'inline-block';
+      mostrarConteudo();
     }
   }
 
