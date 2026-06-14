@@ -19,7 +19,7 @@
   // ===== TELA DE INSTALAÇÃO =====
 
   function mostrarTelaInstalacao() {
-    const container = document.getElementById('app');
+    const container = document.querySelector('.container');
     if (!container) return;
 
     container.innerHTML = `
