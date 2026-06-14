@@ -1,355 +1,468 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-tema="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="Gerencie seu Álbum Copa 2026 por NFC — marque figurinhas, veja o álbum, controle repetidas" />
-  <meta name="theme-color" content="#0A0A0B" />
+  <meta name="description" content="Álbum Copa 2026 — 676 figurinhas. Gerencie sua coleção, troque repetidas, complete o álbum." />
+  <meta name="theme-color" content="#0c0c0d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css?v=3" />
-  <title>Copa 2026 — NFC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,500;0,6..72,700;1,6..72,300&display=swap" rel="stylesheet" />
+  <title>Copa 2026 — Álbum de Figurinhas</title>
   <style>
-    /* ===== LANDING NFC ===== */
+    /* ===== RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      background: var(--bg-base);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0c0c0d;
+      color: #f0ede8;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100dvh;
-      margin: 0;
-      padding: 1rem;
-      font-family: var(--fonte-corpo);
-      color: var(--texto-primario);
+      overflow-x: hidden;
     }
 
-    .nfc-container {
-      max-width: 400px;
+    /* ===== BACKGROUND TEXTURE ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(60,45,20,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212,175,55,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 20% 80%, rgba(40,25,10,0.2) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== NOISE OVERLAY ===== */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== CONTAINER ===== */
+    .container {
+      position: relative;
+      z-index: 1;
       width: 100%;
+      max-width: 420px;
+      padding: 2rem 1.5rem 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    /* ===== LOGO ===== */
+    .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fade-slide 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+
+    .logo-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .logo-text {
       text-align: center;
     }
 
-    /* FASE 1 — VIBRAÇÃO / SPLASH */
-    .nfc-splash {
-      padding: 3rem 1rem;
-    }
-
-    .nfc-logo {
-      width: 100px;
-      height: 100px;
-      margin: 0 auto 1.5rem;
-      animation: pulse-logo 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-logo {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .nfc-splash h1 {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin: 0 0 0.5rem;
-    }
-
-    .nfc-splash h1 span {
-      color: var(--cor-primaria);
-    }
-
-    .nfc-splash p {
-      color: var(--texto-secundario);
-      font-size: 0.85rem;
-      margin: 0 0 2rem;
-    }
-
-    .nfc-badge-anim {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.4rem 1rem;
-      border: 1px solid var(--cor-primaria);
-      color: var(--cor-primaria);
-      font-family: var(--fonte-mono);
-      font-size: 0.75rem;
-      margin-bottom: 1.5rem;
-      animation: nfc-pulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes nfc-pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
-    }
-
-    /* FASE 2 — OPÇÕES */
-    .nfc-opcoes {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .nfc-btn {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.2rem 1.5rem;
-      background: var(--bg-superficie);
-      border: 1px solid var(--linha);
-      color: var(--texto-primario);
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 200ms;
-      text-decoration: none;
-      text-align: left;
-    }
-
-    .nfc-btn:hover {
-      border-color: var(--cor-primaria);
-      background: var(--bg-destaque);
-      transform: translateY(-2px);
-    }
-
-    .nfc-btn:active {
-      transform: translateY(0);
-    }
-
-    .nfc-btn .nfc-btn-icon {
+    .logo-text h1 {
+      font-family: 'Newsreader', 'Georgia', serif;
+      font-weight: 300;
       font-size: 1.8rem;
-      line-height: 1;
-      flex-shrink: 0;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: #f0ede8;
     }
 
-    .nfc-btn .nfc-btn-content {
-      flex: 1;
+    .logo-text h1 em {
+      font-style: italic;
+      font-weight: 300;
+      color: #d4af37;
     }
 
-    .nfc-btn .nfc-btn-content strong {
-      display: block;
-      font-size: 0.9rem;
-      margin-bottom: 0.15rem;
-    }
-
-    .nfc-btn .nfc-btn-content small {
-      display: block;
+    .logo-text .sub {
       font-size: 0.7rem;
-      color: var(--texto-terciario);
       font-weight: 400;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(240, 237, 232, 0.35);
+      margin-top: 0.3rem;
+      font-family: 'Inter', sans-serif;
     }
 
-    .nfc-btn--album {
-      border-color: var(--cor-tenho);
-    }
-    .nfc-btn--album:hover {
-      background: rgba(46, 125, 50, 0.1);
-    }
-
-    .nfc-btn--gerente {
-      border-color: var(--cor-repetida);
-    }
-    .nfc-btn--gerente:hover {
-      background: rgba(255, 152, 0, 0.1);
+    /* ===== DIVIDER ===== */
+    .divider {
+      width: 2rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+      animation: fade-slide 1s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .nfc-footer {
-      margin-top: 2rem;
-      color: var(--texto-terciario);
-      font-size: 0.65rem;
-      font-family: var(--fonte-mono);
-    }
-
-    .nfc-instalar-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0.3rem 0.8rem;
-      background: rgba(212, 175, 55, 0.1);
-      border: 1px solid var(--cor-primaria);
-      color: var(--cor-primaria);
-      font-family: var(--fonte-mono);
-      font-size: 0.65rem;
-      cursor: pointer;
-      transition: all 200ms;
-      margin-top: 0.5rem;
-    }
-
-    .nfc-instalar-badge:hover {
-      background: var(--cor-primaria);
-      color: var(--texto-inverso);
-    }
-
-    .nfc-instalar-box {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      background: var(--bg-superficie);
-      border: 1px dashed var(--linha);
-    }
-
-    .nfc-instalar-box p {
-      font-size: 0.75rem;
-      color: var(--texto-secundario);
-      margin: 0 0 0.5rem;
-    }
-
-    /* FASE 3 — STATS RAPIDO */
-    .nfc-stats {
+    /* ===== STATS ===== */
+    .stats {
+      width: 100%;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
-      margin: 1.5rem 0;
+      animation: fade-slide 1s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .nfc-stat {
-      background: var(--bg-superficie);
-      border: 1px solid var(--linha);
-      padding: 0.75rem 0.5rem;
+    .stat {
+      text-align: center;
+      padding: 0.75rem 0.25rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      transition: border-color 0.3s;
     }
 
-    .nfc-stat .num {
-      font-family: var(--fonte-mono);
-      font-size: 1.4rem;
-      font-weight: 800;
+    .stat:hover {
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .stat .num {
       display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+      line-height: 1;
     }
 
-    .nfc-stat .label {
+    .stat .num.tenho { color: #4caf50; }
+    .stat .num.repetida { color: #ff9800; }
+    .stat .num.falta { color: #ef5350; }
+
+    .stat .label {
+      display: block;
       font-size: 0.55rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--texto-terciario);
-      font-family: var(--fonte-mono);
+      color: rgba(240, 237, 232, 0.3);
+      margin-top: 0.3rem;
     }
 
-    .nfc-stat.tenho .num { color: var(--cor-tenho); }
-    .nfc-stat.repetida .num { color: var(--cor-repetida); }
-    .nfc-stat.falta .num { color: var(--cor-falta); }
+    /* ===== PROGRESS ===== */
+    .progress-wrap {
+      width: 100%;
+      animation: fade-slide 1s 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
 
-    .nfc-progresso {
-      height: 4px;
-      background: var(--linha);
-      margin: 0.5rem 0 1rem;
-      border-radius: 2px;
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+
+    .progress-header .pct {
+      font-family: 'Newsreader', 'Georgia', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      color: #d4af37;
+      line-height: 1;
+    }
+
+    .progress-header .meta {
+      font-size: 0.6rem;
+      color: rgba(240, 237, 232, 0.25);
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.06);
+      position: relative;
       overflow: hidden;
     }
 
-    .nfc-progresso .fill {
+    .progress-bar .fill {
       height: 100%;
-      background: var(--cor-tenho);
-      transition: width 500ms;
+      background: #d4af37;
+      width: 0%;
+      transition: width 800ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .nfc-pct {
-      font-family: var(--fonte-mono);
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--cor-primaria);
+    /* ===== CARDS ===== */
+    .cards {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      animation: fade-slide 1s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    /* SCAN MODE */
-    .nfc-scan {
-      margin: 1.5rem 0;
-      padding: 1.5rem;
-      border: 2px dashed var(--cor-primaria);
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.015);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       cursor: pointer;
-      transition: all 300ms;
+      position: relative;
+      overflow: hidden;
     }
 
-    .nfc-scan:hover {
-      background: rgba(212, 175, 55, 0.05);
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.4s;
     }
 
-    .nfc-scan .scan-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+    .card--gerente::before {
+      background: linear-gradient(135deg, rgba(255,152,0,0.04), transparent);
     }
 
-    .nfc-scan .scan-text {
-      font-size: 0.8rem;
-      color: var(--texto-secundario);
+    .card--album::before {
+      background: linear-gradient(135deg, rgba(76,175,80,0.04), transparent);
     }
 
-    @media (max-width: 400px) {
-      .nfc-stats { grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
-      .nfc-stat .num { font-size: 1.1rem; }
+    .card:hover {
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:active {
+      transform: translateY(0);
+    }
+
+    .card-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      font-size: 1.2rem;
+    }
+
+    .card--gerente .card-icon {
+      color: #ff9800;
+      border-color: rgba(255,152,0,0.2);
+    }
+
+    .card--album .card-icon {
+      color: #4caf50;
+      border-color: rgba(76,175,80,0.2);
+    }
+
+    .card-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card-body .title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.15rem;
+    }
+
+    .card-body .desc {
+      font-size: 0.7rem;
+      color: rgba(240, 237, 232, 0.35);
+      font-weight: 400;
+    }
+
+    .card-arrow {
+      color: rgba(240, 237, 232, 0.15);
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+
+    .card:hover .card-arrow {
+      color: rgba(240, 237, 232, 0.5);
+      transform: translateX(3px);
+    }
+
+    .card--gerente:hover .card-icon {
+      border-color: rgba(255,152,0,0.4);
+    }
+
+    .card--album:hover .card-icon {
+      border-color: rgba(76,175,80,0.4);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(240, 237, 232, 0.12);
+      animation: fade-slide 1s 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    /* ===== INSTALL BADGE ===== */
+    .install-badge {
+      display: none;
+      cursor: pointer;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      color: rgba(240, 237, 232, 0.25);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 0.35rem 1rem;
+      transition: all 0.3s;
+      animation: fade-slide 1s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+      background: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .install-badge:hover {
+      border-color: rgba(212,175,55,0.3);
+      color: #d4af37;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fade-slide {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== SPLASH (primeira visita) ===== */
+    #splash {
+      animation: splash-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes splash-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 360px) {
+      .container { padding: 1.5rem 1rem; gap: 1.5rem; }
+      .logo-icon { width: 64px; height: 64px; }
+      .logo-text h1 { font-size: 1.4rem; }
+      .stat .num { font-size: 1.2rem; }
+      .card { padding: 1rem; }
+    }
+
+    @media (min-width: 600px) {
+      .container { max-width: 500px; padding: 3rem 2rem; }
+      .logo-icon { width: 96px; height: 96px; }
     }
   </style>
 </head>
 <body>
-<div class="nfc-container" id="app">
-  <!-- FASE 1: Splash -->
-  <div id="fase-splash" class="nfc-splash">
-    <div class="nfc-logo">
-      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100" height="100" fill="#0A0A0B" rx="12"/>
-        <circle cx="50" cy="40" r="28" fill="none" stroke="#d4af37" stroke-width="3"/>
-        <path d="M50 16 L70 36 L64 64 L36 64 L30 36 Z" fill="#FFDF00"/>
-        <circle cx="50" cy="40" r="6" fill="#0A0A0B"/>
-        <text x="50" y="78" font-family="Inter, sans-serif" font-size="14" font-weight="800" fill="#d4af37" text-anchor="middle" letter-spacing="3">COPA</text>
-        <text x="50" y="93" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="1">2026</text>
+<div class="container" id="app">
+  <!-- ===== LOGO ===== -->
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="96" height="96" rx="10" stroke="#d4af37" stroke-width="2" fill="none"/>
+        <circle cx="50" cy="38" r="24" stroke="#d4af37" stroke-width="2.5" fill="none"/>
+        <path d="M50 16L68 34L63 58L37 58L32 34Z" fill="#FFDF00" opacity="0.9"/>
+        <circle cx="50" cy="38" r="5" fill="#0c0c0d"/>
+        <text x="50" y="74" font-family="Inter, sans-serif" font-size="11" font-weight="800" fill="#d4af37" text-anchor="middle" letter-spacing="4">COPA</text>
+        <text x="50" y="88" font-family="Inter, sans-serif" font-size="8" font-weight="600" fill="rgba(240,237,232,0.3)" text-anchor="middle" letter-spacing="2">2026</text>
       </svg>
     </div>
-    <h1>Álbum <span>Copa 2026</span></h1>
-    <p>676 figurinhas · 48 seleções · 12 grupos</p>
-    <div class="nfc-badge-anim">📡 NFC ATIVO</div>
-  </div>
-
-  <!-- FASE 2: Resumo + Opções (aparece após detectar) -->
-  <div id="fase-opcoes" style="display:none">
-    <h2 style="font-size:1.1rem;font-weight:700;margin:0 0 0.25rem">⚽ Seu álbum</h2>
-
-    <div class="nfc-pct" id="nfc-pct">0%</div>
-    <div class="nfc-progresso"><div class="fill" id="nfc-bar" style="width:0%"></div></div>
-
-    <div class="nfc-stats">
-      <div class="nfc-stat tenho">
-        <span class="num" id="nf-tenho">0</span>
-        <span class="label">Tenho</span>
-      </div>
-      <div class="nfc-stat repetida">
-        <span class="num" id="nf-repetida">0</span>
-        <span class="label">Repetidas</span>
-      </div>
-      <div class="nfc-stat falta">
-        <span class="num" id="nf-falta">0</span>
-        <span class="label">Falta</span>
-      </div>
-    </div>
-
-    <div class="nfc-opcoes">
-      <a href="gerente.html" class="nfc-btn nfc-btn--gerente">
-        <span class="nfc-btn-icon">⚙️</span>
-        <span class="nfc-btn-content">
-          <strong>Gerenciar coleção</strong>
-          <small>Marcar figurinhas · Trocas · Input rápido por código</small>
-        </span>
-      </a>
-      <a href="index.html" class="nfc-btn nfc-btn--album">
-        <span class="nfc-btn-icon">📖</span>
-        <span class="nfc-btn-content">
-          <strong>Abrir o álbum</strong>
-          <small>Visualizar catálogo · Dashboard · Filtros</small>
-        </span>
-      </a>
-    </div>
-
-    <!-- Scan NFC -->
-    <div class="nfc-scan" id="btn-scan-nfc">
-      <div class="scan-icon">📡</div>
-      <div class="scan-text">Aproxime uma tag NFC para ler códigos</div>
-    </div>
-
-    <!-- Install -->
-    <div id="install-container" style="display:none">
-      <div class="nfc-instalar-box">
-        <p>📲 Instale o app na tela inicial para acesso mais rápido</p>
-        <span class="nfc-instalar-badge" id="btn-instalar">📲 Instalar app</span>
-      </div>
+    <div class="logo-text">
+      <h1>álbum <em>copa 2026</em></h1>
+      <div class="sub">676 figurinhas · 48 seleções</div>
     </div>
   </div>
 
-  <div class="nfc-footer">COPA 2026 · FIGURINHAS · DADOS SALVOS NO NAVEGADOR</div>
+  <div class="divider"></div>
+
+  <!-- ===== STATS ===== -->
+  <div class="stats">
+    <div class="stat">
+      <span class="num tenho" id="st-tenho">—</span>
+      <span class="label">Tenho</span>
+    </div>
+    <div class="stat">
+      <span class="num repetida" id="st-repetida">—</span>
+      <span class="label">Repetidas</span>
+    </div>
+    <div class="stat">
+      <span class="num falta" id="st-falta">—</span>
+      <span class="label">Falta</span>
+    </div>
+  </div>
+
+  <!-- ===== PROGRESS ===== -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="pct" id="st-pct">0%</span>
+      <span class="meta"><span id="st-tenho-count">0</span> / <span id="st-total">676</span></span>
+    </div>
+    <div class="progress-bar">
+      <div class="fill" id="st-bar"></div>
+    </div>
+  </div>
+
+  <!-- ===== CARDS ===== -->
+  <div class="cards">
+    <a href="gerente.html" class="card card--gerente">
+      <div class="card-icon">✦</div>
+      <div class="card-body">
+        <span class="title">Gerenciar coleção</span>
+        <span class="desc">Marcar figurinhas &middot; Trocas &middot; Input por código</span>
+      </div>
+      <span class="card-arrow">→</span>
+    </a>
+    <a href="index.html" class="card card--album">
+      <div class="card-icon">◈</div>
+      <div class="card-body">
+        <span class="title">Abrir o álbum</span>
+        <span class="desc">Visualizar catálogo &middot; Dashboard &middot; Filtros</span>
+      </div>
+      <span class="card-arrow">→</span>
+    </a>
+  </div>
+
+  <!-- ===== INSTALL ===== -->
+  <button class="install-badge" id="btn-install">+ Instalar app</button>
+
+  <div class="footer">Álbum Copa do Mundo 2026</div>
 </div>
 
 <script>
@@ -357,158 +470,89 @@
   'use strict';
 
   const STORAGE_KEY = 'album-copa-2026-v3';
+  const TOTAL = window.AlbumCopa ? window.AlbumCopa.data.total : 676;
 
-  // ============== NFC STATUS ==============
   const isInstalled = window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true;
 
-  let deferredPrompt = null;
-  let nfcReader = null;
-
-  // ============== CARREGAR ESTADOS ==============
-  function carregarEstados() {
+  // ===== CARREGAR STATS =====
+  function carregarStats() {
     const estados = new Map();
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const obj = JSON.parse(raw);
         Object.keys(obj).forEach(id => {
-          if (['tenho', 'falta', 'repetida'].includes(obj[id])) estados.set(id, obj[id]);
+          if (['tenho', 'repetida'].includes(obj[id])) estados.set(id, obj[id]);
         });
       }
     } catch(e) {}
-    return estados;
-  }
 
-  function atualizarResumo() {
-    const total = window.AlbumCopa ? window.AlbumCopa.data.total : 676;
-    const estados = carregarEstados();
     const tenho = [...estados.values()].filter(v => v === 'tenho').length;
     const repetida = [...estados.values()].filter(v => v === 'repetida').length;
-    const falta = total - tenho - repetida;
-    const pct = total ? Math.round((tenho / total) * 100) : 0;
+    const falta = Math.max(0, TOTAL - tenho - repetida);
+    const pct = TOTAL ? Math.round((tenho / TOTAL) * 100) : 0;
 
-    document.getElementById('nf-tenho').textContent = tenho;
-    document.getElementById('nf-repetida').textContent = repetida;
-    document.getElementById('nf-falta').textContent = falta;
-    document.getElementById('nfc-pct').textContent = pct + '%';
-    document.getElementById('nfc-bar').style.width = pct + '%';
+    document.getElementById('st-tenho').textContent = tenho || '0';
+    document.getElementById('st-repetida').textContent = repetida || '0';
+    document.getElementById('st-falta').textContent = falta || '0';
+    document.getElementById('st-pct').textContent = pct + '%';
+    document.getElementById('st-tenho-count').textContent = tenho || '0';
+    document.getElementById('st-total').textContent = TOTAL;
+    document.getElementById('st-bar').style.width = pct + '%';
   }
 
-  // ============== NFC SCAN ==============
-  function initNFCScan() {
-    if (!('NDEFReader' in window)) {
-      document.getElementById('btn-scan-nfc').style.display = 'none';
-      return;
-    }
+  // ===== INSTALL =====
+  let deferredPrompt = null;
 
-    document.getElementById('btn-scan-nfc').addEventListener('click', async () => {
-      try {
-        const reader = new NDEFReader();
-        nfcReader = reader;
-        await reader.scan();
-
-        document.querySelector('.scan-text').textContent = '📡 NFC ativo! Aproxime a tag...';
-
-        reader.addEventListener('reading', ({ message }) => {
-          for (const record of message.records) {
-            if (record.recordType === 'url') {
-              // Se a tag tem URL, redireciona
-              const url = record.data;
-              if (url.includes('gerente.html')) {
-                window.location.href = 'gerente.html';
-              } else {
-                window.location.href = 'index.html';
-              }
-              return;
-            }
-            if (record.recordType === 'text') {
-              const decoder = new TextDecoder(record.encoding || 'utf-8');
-              const text = decoder.decode(record.data);
-              // Redirecionar pro gerente com a tag lida
-              window.location.href = 'gerente.html?nfc=' + encodeURIComponent(text);
-              return;
-            }
-          }
-          document.querySelector('.scan-text').textContent = '✅ Tag lida! Redirecionando...';
-        });
-      } catch(err) {
-        document.querySelector('.scan-text').textContent = '❌ Erro: ' + err.message;
-        setTimeout(() => {
-          document.querySelector('.scan-text').textContent = '📡 Toque para escanear NFC';
-        }, 3000);
-      }
-    });
-  }
-
-  // ============== INSTALL PROMPT ==============
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     if (!isInstalled) {
-      document.getElementById('install-container').style.display = 'block';
+      document.getElementById('btn-install').style.display = 'inline-block';
     }
   });
 
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
-    document.getElementById('install-container').style.display = 'none';
+    document.getElementById('btn-install').style.display = 'none';
   });
 
-  document.getElementById('btn-instalar')?.addEventListener('click', async () => {
+  document.getElementById('btn-install').addEventListener('click', async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      document.getElementById('install-container').style.display = 'none';
-    }
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('btn-install').style.display = 'none';
   });
 
-  // ============== REGISTRAR SW ==============
+  // ===== SERVICE WORKER =====
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
-  // ============== SE JÁ INSTALADO, PULAR SPLASH + MOSTRA STATS ==============
-  function mostrarOpcoes() {
-    document.getElementById('fase-splash').style.display = 'none';
-    document.getElementById('fase-opcoes').style.display = 'block';
-    document.title = 'Copa 2026 — NFC';
-    atualizarResumo();
-  }
+  // ===== INIT =====
+  // Esperar data.js carregar caso venha direto da NFC
+  const tryLoad = setInterval(() => {
+    if (window.AlbumCopa && window.AlbumCopa.data) {
+      clearInterval(tryLoad);
+      carregarStats();
+    }
+  }, 200);
 
-  // Se já instalado (PWA standalone), pula direto pros stats
-  if (isInstalled) {
-    // Tenta carregar o AlbumCopa se já existir
-    const checkData = setInterval(() => {
-      if (window.AlbumCopa && window.AlbumCopa.data) {
-        clearInterval(checkData);
-        mostrarOpcoes();
-        initNFCScan();
-      }
-    }, 200);
-    // Fallback: se data.js não carregar em 3s, mostra mesmo assim
-    setTimeout(() => {
-      clearInterval(checkData);
-      if (document.getElementById('fase-splash').style.display !== 'none') {
-        mostrarOpcoes();
-        initNFCScan();
-      }
-    }, 3000);
-  } else {
-    // Não instalado: splash com animação, depois revela opções
-    setTimeout(() => {
-      mostrarOpcoes();
-      initNFCScan();
-    }, 1500);
-  }
-
-  // Se tiver ?nfc= na URL (vindo de tag NFC), redireciona pro gerente
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('nfc')) {
-    window.location.href = 'gerente.html';
-  }
+  // Fallback: stats sem AlbumCopa
+  setTimeout(() => {
+    clearInterval(tryLoad);
+    if (!window.AlbumCopa) {
+      // Tenta carregar data.js dinamicamente
+      const s = document.createElement('script');
+      s.src = './data.js?v=3';
+      s.onload = carregarStats;
+      s.onerror = carregarStats; // fallback com TOTAL
+      document.head.appendChild(s);
+    }
+  }, 1000);
 })();
 </script>
 </body>
