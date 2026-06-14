@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/motion@12/dist/motion.js"></script>
   <script src="./data.js?v=3"></script>
 
   <title>Copa 2026 — Álbum de Figurinhas</title>
@@ -371,9 +372,9 @@
     }
 
     /* ===== ANIMATIONS ===== */
-    @keyframes fade-up {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: translateY(0); }
+    .anim-item {
+      opacity: 0;
+      transform: translateY(14px);
     }
 
     /* ===== RESPONSIVE ===== */
@@ -396,8 +397,8 @@
 <body>
 <div class="container">
   <!-- LOGO -->
-  <div class="logo">
-    <div class="logo-icon">
+  <div class="logo anim-item">
+    <div class="logo-icon" id="logo-icon">
       <svg viewBox="0 0 100 100" fill="none">
         <rect x="2.5" y="2.5" width="95" height="95" rx="10" stroke="#d4af37" stroke-width="1.8" fill="none"/>
         <circle cx="50" cy="36" r="22" stroke="#d4af37" stroke-width="2" fill="none"/>
@@ -413,10 +414,10 @@
     </div>
   </div>
 
-  <div class="divider"></div>
+  <div class="divider anim-item"></div>
 
   <!-- STATS -->
-  <div class="stats">
+  <div class="stats anim-item">
     <div class="stat">
       <span class="num tenho" id="st-tenho">—</span>
       <span class="label">Tenho</span>
@@ -432,7 +433,7 @@
   </div>
 
   <!-- PROGRESS -->
-  <div class="progress-wrap">
+  <div class="progress-wrap anim-item">
     <div class="progress-header">
       <span class="pct" id="st-pct">—</span>
       <span class="meta"><span id="st-tenho-count">0</span> / <span id="st-total">676</span></span>
@@ -443,8 +444,8 @@
   </div>
 
   <!-- CARDS -->
-  <div class="cards">
-    <a href="gerente.html" class="card card--gerente">
+  <div class="cards anim-item">
+    <a href="gerente.html" class="card card--gerente anim-card">
       <div class="card-icon">✦</div>
       <div class="card-body">
         <span class="title">Gerenciar coleção</span>
@@ -452,7 +453,7 @@
       </div>
       <span class="card-arrow">→</span>
     </a>
-    <a href="index.html" class="card card--album">
+    <a href="index.html" class="card card--album anim-card">
       <div class="card-icon">◈</div>
       <div class="card-body">
         <span class="title">Abrir o álbum</span>
@@ -532,17 +533,77 @@
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
+  function initAnimacoes() {
+    // Stagger principal com Motion
+    const items = document.querySelectorAll('.anim-item');
+    if (typeof Motion !== 'undefined') {
+      items.forEach((el, i) => {
+        Motion.animate(el, { opacity: [0, 1], y: [14, 0] }, {
+          duration: 0.7,
+          delay: Motion.stagger(0.08, { from: i }),
+          easing: [0.16, 1, 0.3, 1]
+        });
+      });
+
+      // Hover + Press nos cards
+      document.querySelectorAll('.anim-card').forEach(card => {
+        Motion.hover(card, {
+          onEnter: () => Motion.animate(card, { y: -4, scale: 1.01 }, { duration: 0.25, easing: [0.16,1,0.3,1] }),
+          onLeave: () => Motion.animate(card, { y: 0, scale: 1 }, { duration: 0.25, easing: [0.16,1,0.3,1] })
+        });
+        Motion.press(card, {
+          onStart: () => Motion.animate(card, { scale: 0.98 }, { duration: 0.1 }),
+          onEnd: () => Motion.animate(card, { scale: 1 }, { duration: 0.2, easing: Motion.spring({ stiffness: 300, damping: 15 }) })
+        });
+      });
+
+      // Press no install badge
+      const installBtn = document.getElementById('btn-install');
+      if (installBtn) {
+        Motion.press(installBtn, {
+          onStart: () => Motion.animate(installBtn, { scale: 0.97 }, { duration: 0.1 }),
+          onEnd: () => Motion.animate(installBtn, { scale: 1 }, { duration: 0.2 })
+        });
+      }
+    } else {
+      // Fallback sem Motion
+      items.forEach((el, i) => {
+        setTimeout(() => {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+          el.style.transition = 'all 0.7s cubic-bezier(0.16, 1, 0.3, 1)';
+        }, i * 80);
+      });
+    }
+  }
+
   function init() {
+    // Animar a logo-icon com um pulse sutil
+    setTimeout(() => {
+      if (typeof Motion !== 'undefined') {
+        const logoIcon = document.getElementById('logo-icon');
+        if (logoIcon) {
+          Motion.animate(logoIcon, { scale: [1, 1.03, 1] }, {
+            duration: 2.5,
+            easing: [0.16, 1, 0.3, 1],
+            repeat: Infinity
+          });
+        }
+      }
+    }, 1000);
+
     if (window.AlbumCopa && window.AlbumCopa.data) {
       carregarStats();
+      initAnimacoes();
     } else {
       const check = setInterval(() => {
         if (window.AlbumCopa && window.AlbumCopa.data) {
           clearInterval(check);
           carregarStats();
+          initAnimacoes();
         }
       }, 200);
-      setTimeout(() => clearInterval(check), 3000);
+      setTimeout(() => { clearInterval(check); initAnimacoes(); }, 3000);
     }
   }
 

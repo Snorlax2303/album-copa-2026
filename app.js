@@ -317,6 +317,54 @@
     }
   }
 
+  function initMotionAnimations() {
+    if (typeof Motion === 'undefined') return;
+    // Header fade
+    document.querySelectorAll('.cabecalho__container > *').forEach((el, i) => {
+      Motion.animate(el, { opacity: [0, 1], y: [-10, 0] }, {
+        duration: 0.6, delay: Motion.stagger(0.1, { from: i }), easing: [0.16, 1, 0.3, 1]
+      });
+    });
+    // Dashboard cards stagger
+    const cards = document.querySelectorAll('.dashboard .card');
+    cards.forEach((card, i) => {
+      Motion.animate(card, { opacity: [0, 1], y: [12, 0] }, {
+        duration: 0.5, delay: Motion.stagger(0.04, { from: i }), easing: [0.16, 1, 0.3, 1]
+      });
+      // Hover nos cards
+      Motion.hover(card, {
+        onEnter: () => Motion.animate(card, { y: -2 }, { duration: 0.2, easing: [0.16,1,0.3,1] }),
+        onLeave: () => Motion.animate(card, { y: 0 }, { duration: 0.2, easing: [0.16,1,0.3,1] })
+      });
+    });
+    // Filtros stagger
+    document.querySelectorAll('.filtros .campo').forEach((el, i) => {
+      Motion.animate(el, { opacity: [0, 1], y: [8, 0] }, {
+        duration: 0.4, delay: Motion.stagger(0.03, { from: i }), easing: [0.16, 1, 0.3, 1]
+      });
+    });
+  }
+
+  // Patch no renderCatalogo pra animar os cards novos
+  const _origRender = renderizarCatalogo;
+  renderizarCatalogo = function() {
+    _origRender();
+    // Animar figurinhas com Motion
+    if (typeof Motion !== 'undefined') {
+      const figs = document.querySelectorAll('.figurinha');
+      figs.forEach((el, i) => {
+        Motion.animate(el, { opacity: [0, 1], y: [8, 0] }, {
+          duration: 0.3, delay: Motion.stagger(0.015, { from: i }), easing: [0.16, 1, 0.3, 1]
+        });
+        // Hover sutil
+        Motion.hover(el, {
+          onEnter: () => Motion.animate(el, { y: -2, scale: 1.01 }, { duration: 0.2 }),
+          onLeave: () => Motion.animate(el, { y: 0, scale: 1 }, { duration: 0.2 })
+        });
+      });
+    }
+  };
+
   window.getBandeira = getBandeira;
 
   function init() {
@@ -328,6 +376,7 @@
     initParticles();
     document.getElementById('btn-limpar')?.addEventListener('click', limparTudo);
     document.getElementById('btn-tema')?.addEventListener('click', alternarTema);
+    initMotionAnimations();
     renderizarTudo();
   }
 
