@@ -643,8 +643,9 @@
 
   function init() {
     if (isInstalled) {
-      // PWA já instalado → mostra conteúdo direto
-      mostrarConteudo();
+      // PWA já instalado → redireciona pro álbum
+      window.location.href = 'index.html';
+      return;
     } else if (!jaViuNfc) {
       // Primeira vez → mostra tela de instalação
       document.querySelector('.container').style.display = 'none';

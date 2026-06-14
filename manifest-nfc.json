@@ -2,7 +2,7 @@
   "name": "Álbum Copa 2026",
   "short_name": "Copa 2026",
   "description": "Álbum de figurinhas da Copa do Mundo 2026 — 676 figurinhas",
-  "start_url": "/nfc.html",
+  "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
