@@ -381,6 +381,10 @@
     document.getElementById('btn-limpar')?.addEventListener('click', limparTudo);
     document.getElementById('btn-tema')?.addEventListener('click', alternarTema);
     initMotionAnimations();
+    // Iniciar indicador de sync
+    if (window.AlbumSync) {
+      setTimeout(() => AlbumSync.criarIndicador(document.getElementById('sync-indicator-container')), 100);
+    }
     renderizarTudo();
   }
 
