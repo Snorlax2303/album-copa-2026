@@ -60,7 +60,9 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
     } catch (e) {}
     // Sync com servidor (fire-and-forget)
-    // Sync removido — versão estática
+    if (window.AlbumSync) {
+      window.AlbumSync.enviarParaServidor(estado.estados);
+    }
   }
 
   function definirEstado(id, novoEstado) {
@@ -379,7 +381,10 @@
     document.getElementById('btn-limpar')?.addEventListener('click', limparTudo);
     document.getElementById('btn-tema')?.addEventListener('click', alternarTema);
     initMotionAnimations();
-    // Sync removido — versão estática
+    // Iniciar indicador de sync
+    if (window.AlbumSync) {
+      setTimeout(() => AlbumSync.criarIndicador(document.getElementById('sync-indicator-container')), 100);
+    }
     renderizarTudo();
   }
 
