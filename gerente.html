@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Gestão rápida do Álbum Copa 2026 — input por código, trocas, repetidas" />
+  <meta name="theme-color" content="#0A0A0B" />
+  <title>Gerente Copa 2026</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/motion@12/dist/motion.js"></script>
+  <script src="./data.js?v=3"></script>
+  <style>
+    /* ===== OVERRIDES PRA PAGINA DE GESTAO ===== */
+    body { background: var(--bg-base); }
+    .app-container { max-width: 600px; margin: 0 auto; padding: 1rem; }
+
+    /* HEADER SIMPLES */
+    .gest-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 0; border-bottom: 1px solid var(--linha); margin-bottom: 1rem;
+    }
+    .gest-header h1 { font-size: 1.1rem; font-weight: 700; }
+    .gest-header .stats {
+      font-family: var(--fonte-mono); font-size: 0.7rem; color: var(--texto-secundario);
+    }
+    .gest-header .stats strong { color: var(--cor-primaria); }
+
+    /* INPUT PRINCIPAL */
+    .input-area {
+      background: var(--bg-superficie); border: 1px solid var(--linha);
+      padding: 1rem; margin-bottom: 1rem;
+    }
+    .input-area label {
+      font-size: 0.65rem; font-family: var(--fonte-mono);
+      letter-spacing: 0.1em; color: var(--texto-secundario); text-transform: uppercase;
+      display: block; margin-bottom: 0.4rem;
+    }
+    .input-linha {
+      display: flex; gap: 0.5rem; align-items: center;
+    }
+    .input-linha select {
+      background: var(--bg-base); color: var(--texto-primario);
+      border: 1px solid var(--linha); padding: 0.6rem 0.5rem;
+      font-size: 0.9rem; font-family: var(--fonte-mono); font-weight: 600;
+      min-width: 75px; cursor: pointer;
+    }
+    .input-linha input {
+      flex: 1; background: var(--bg-base); color: var(--cor-primaria);
+      border: 1px solid var(--linha); padding: 0.6rem 0.75rem;
+      font-size: 1rem; font-family: var(--fonte-mono); font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .input-linha input::placeholder { color: var(--texto-terciario); font-weight: 400; font-size: 0.85rem; }
+    .input-linha input:focus { outline: none; border-color: var(--cor-primaria); }
+    .input-linha button {
+      padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
+      border: 1px solid var(--cor-primaria); background: var(--cor-primaria);
+      color: var(--texto-inverso); cursor: pointer; white-space: nowrap;
+    }
+    .input-linha button:hover { filter: brightness(1.1); }
+
+    .input-actions {
+      display: flex; gap: 0.5rem; margin-top: 0.6rem;
+    }
+    .input-actions button {
+      flex: 1; padding: 0.5rem; border: 1px solid var(--linha);
+      background: transparent; color: var(--texto-primario);
+      font-size: 0.75rem; font-weight: 600; cursor: pointer;
+      transition: all 150ms;
+    }
+    .input-actions button:hover { background: var(--bg-destaque); }
+    .btn-marcar-tenho { border-color: var(--cor-tenho) !important; color: var(--cor-tenho) !important; }
+    .btn-marcar-tenho:hover { background: var(--cor-tenho) !important; color: var(--texto-inverso) !important; }
+    .btn-marcar-repetida { border-color: var(--cor-repetida) !important; color: var(--cor-repetida) !important; }
+    .btn-marcar-repetida:hover { background: var(--cor-repetida) !important; color: var(--texto-inverso) !important; }
+
+    .feedback {
+      padding: 0.5rem; margin-top: 0.5rem;
+      font-size: 0.8rem; font-family: var(--fonte-mono);
+      min-height: 1.5rem; transition: all 200ms;
+    }
+    .feedback.ok { color: var(--cor-tenho); }
+    .feedback.erro { color: var(--cor-falta); }
+    .feedback.info { color: var(--cor-primaria); }
+
+    /* TROCAS */
+    .troca-area {
+      background: var(--bg-superficie); border: 1px solid var(--linha);
+      padding: 1rem; margin-bottom: 1rem;
+    }
+    .troca-area h3 {
+      font-size: 0.8rem; font-family: var(--fonte-mono); font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--texto-secundario); margin-bottom: 0.75rem;
+    }
+    .troca-grid {
+      display: flex; gap: 0.5rem;
+    }
+    .troca-grid > div { flex: 1; }
+    .troca-grid label {
+      font-size: 0.6rem; color: var(--texto-terciario); text-transform: uppercase;
+      font-family: var(--fonte-mono); letter-spacing: 0.08em;
+    }
+    .troca-grid input, .troca-grid select {
+      width: 100%; background: var(--bg-base); color: var(--texto-primario);
+      border: 1px solid var(--linha); padding: 0.5rem;
+      font-size: 0.85rem; font-family: var(--fonte-mono);
+    }
+    .troca-btn {
+      width: 100%; padding: 0.6rem; margin-top: 0.5rem;
+      background: var(--cor-primaria); border: 0;
+      color: var(--texto-inverso); font-weight: 700; font-size: 0.85rem;
+      cursor: pointer; letter-spacing: 0.05em;
+    }
+    .troca-btn:hover { filter: brightness(1.1); }
+
+    /* HISTÓRICO */
+    .historico-area {
+      background: var(--bg-superficie); border: 1px solid var(--linha);
+      padding: 1rem; margin-bottom: 1rem;
+    }
+    .historico-area h3 {
+      font-size: 0.8rem; font-family: var(--fonte-mono); font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--texto-secundario); display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .historico-area h3 button {
+      background: none; border: 0; color: var(--texto-terciario);
+      font-size: 0.65rem; cursor: pointer; text-decoration: underline;
+    }
+    .historico-area h3 button:hover { color: var(--cor-alerta); }
+    #historico-lista {
+      margin-top: 0.5rem; max-height: 300px; overflow-y: auto;
+    }
+    .historico-item {
+      padding: 0.4rem 0; border-bottom: 1px solid var(--linha-fraca);
+      font-size: 0.78rem; display: flex; justify-content: space-between;
+    }
+    .historico-item .h-tag {
+      font-family: var(--fonte-mono); font-size: 0.7rem;
+      padding: 0.05rem 0.3rem; font-weight: 600;
+    }
+    .h-tag-tenho { color: var(--cor-tenho); border: 1px solid var(--cor-tenho); }
+    .h-tag-repetida { color: var(--cor-repetida); border: 1px solid var(--cor-repetida); }
+    .h-tag-troca { color: var(--texto-secundario); border: 1px solid var(--linha); }
+
+    /* RESUMO */
+    .resumo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .resumo-card {
+      background: var(--bg-superficie); border: 1px solid var(--linha);
+      padding: 0.75rem; text-align: center;
+    }
+    .resumo-card .r-valor {
+      font-family: var(--fonte-mono); font-size: 1.2rem; font-weight: 800;
+      color: var(--texto-primario);
+    }
+    .resumo-card .r-rotulo {
+      font-size: 0.6rem; font-family: var(--fonte-mono);
+      color: var(--texto-terciario); text-transform: uppercase;
+      letter-spacing: 0.05em; margin-top: 0.1rem;
+    }
+    .resumo-tenho .r-valor { color: var(--cor-tenho); }
+    .resumo-repetida .r-valor { color: var(--cor-repetida); }
+    .resumo-falta .r-valor { color: var(--cor-falta); }
+
+    /* ULTIMAS MARCADAS */
+    .ultimas-area {
+      background: var(--bg-superficie); border: 1px solid var(--linha);
+      padding: 0.75rem; margin-bottom: 1rem;
+      display: flex; gap: 0.3rem; flex-wrap: wrap; min-height: 2rem;
+    }
+    .ultima-tag {
+      font-family: var(--fonte-mono); font-size: 0.7rem;
+      padding: 0.15rem 0.4rem; border: 1px solid var(--linha);
+      color: var(--texto-secundario);
+    }
+    .ultima-tag.tenho { border-color: var(--cor-tenho); color: var(--cor-tenho); }
+    .ultima-tag.repetida { border-color: var(--cor-repetida); color: var(--cor-repetida); }
+
+    /* NFC BADGE */
+    .nfc-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.2rem 0.5rem; font-size: 0.6rem;
+      background: var(--bg-destaque); border: 1px solid var(--linha);
+      color: var(--texto-secundario); font-family: var(--fonte-mono);
+    }
+    .nfc-badge.ativo { border-color: var(--cor-tenho); color: var(--cor-tenho); }
+
+    @media (max-width: 480px) {
+      .input-linha { flex-wrap: wrap; }
+      .input-linha select { flex: 1; min-width: 60px; }
+      .input-linha input { flex: 2; min-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- HEADER -->
+  <div class="gest-header">
+    <div>
+      <h1>⚽ Gerente Copa 2026</h1>
+      <div class="stats">
+        <span id="stats-colecao">0%</span> · 
+        <strong id="stats-tenho">0</strong> tenho · 
+        <strong id="stats-repetida" style="color:var(--cor-repetida)">0</strong> rep · 
+        <strong id="stats-falta" style="color:var(--cor-falta)">0</strong> falta
+      </div>
+    </div>
+    <div>
+      <span class="nfc-badge" id="nfc-status">📡 NFC</span>
+      <div id="sync-indicator-container" style="display:inline-flex;vertical-align:middle;margin-left:0.3rem"></div>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.5rem;font-size:0.6rem;background:var(--bg-destaque);border:1px solid var(--linha);color:var(--texto-secundario);font-family:var(--fonte-mono);text-decoration:none;margin-left:0.3rem">
+        📖 Álbum
+      </a>
+    </div>
+  </div>
+
+  <!-- RESUMO RÁPIDO -->
+  <div class="resumo-grid">
+    <div class="resumo-card resumo-tenho">
+      <div class="r-valor" id="r-tenho">0</div>
+      <div class="r-rotulo">Tenho</div>
+    </div>
+    <div class="resumo-card resumo-repetida">
+      <div class="r-valor" id="r-repetida">0</div>
+      <div class="r-rotulo">Repetidas</div>
+    </div>
+    <div class="resumo-card resumo-falta">
+      <div class="r-valor" id="r-falta">0</div>
+      <div class="r-rotulo">Falta</div>
+    </div>
+  </div>
+
+  <!-- INPUT RÁPIDO -->
+  <div class="input-area">
+    <label>📥 Marcar figurinhas</label>
+    <div class="input-linha">
+      <select id="sel-selecao">
+        <option value="">-- SEL --</option>
+      </select>
+      <input id="input-numeros" type="text" placeholder="ex: 1,2,5-10,12" autocomplete="off" />
+      <button id="btn-add">OK</button>
+    </div>
+    <div class="input-actions">
+      <button class="btn-marcar-tenho" data-acao="tenho">✓ Tenho</button>
+      <button class="btn-marcar-repetida" data-acao="repetida">↻ Repetida</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ESPECIAIS RÁPIDO -->
+  <div class="input-area" style="border-color:rgba(212,175,55,0.15)">
+    <label style="color:#d4af37">🏆 Especiais</label>
+    <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem">
+      <span style="font-size:0.6rem;color:var(--texto-terciario);font-family:var(--fonte-mono);width:100%;margin-bottom:0.25rem">Panini · Copa 2026 · Cidades-Sede · História</span>
+      <button class="especial-btn" data-sel="Panini" data-nums="1">Panini #1</button>
+      <button class="especial-btn" data-sel="Copa 2026" data-nums="2,3,4,5,6">Copa 2-6</button>
+      <button class="especial-btn" data-sel="Cidades-Sede" data-nums="7,8,9">Sedes 7-9</button>
+      <button class="especial-btn" data-sel="História" data-nums="1024,1025,1026,1027,1028,1029,1030,1031,1032,1033,1034">História</button>
+    </div>
+    <div style="display:flex;gap:0.4rem;margin-top:0.4rem">
+      <button class="btn-marcar-tenho" data-acao="tenho" style="flex:1;padding:0.4rem;border:1px solid var(--cor-tenho);background:transparent;color:var(--cor-tenho);font-size:0.7rem;font-weight:600;cursor:pointer">✓ Marcar Tenho</button>
+      <button class="btn-marcar-repetida" data-acao="repetida" style="flex:1;padding:0.4rem;border:1px solid var(--cor-repetida);background:transparent;color:var(--cor-repetida);font-size:0.7rem;font-weight:600;cursor:pointer">↻ Marcar Repetida</button>
+    </div>
+  </div>
+
+  <!-- ÚLTIMAS MARCADAS -->
+  <div id="ultimas-container" class="ultimas-area">
+    <span style="color:var(--texto-terciario);font-size:0.7rem">Últimas marcadas aparecem aqui</span>
+  </div>
+
+  <!-- TROCA RÁPIDA -->
+  <div class="troca-area">
+    <h3>🔄 Troca Rápida</h3>
+    <div class="troca-grid">
+      <div>
+        <label>Dar (suas repetidas)</label>
+        <select id="troca-dar-selecao"><option value="">--</option></select>
+        <input id="troca-dar-numeros" type="text" placeholder="nums" />
+      </div>
+      <div>
+        <label>Receber (dele)</label>
+        <select id="troca-receber-selecao"><option value="">--</option></select>
+        <input id="troca-receber-numeros" type="text" placeholder="nums" />
+      </div>
+    </div>
+    <button class="troca-btn" id="btn-troca">✓ CONFIRMAR TROCA</button>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="historico-area">
+    <h3>
+      📋 Últimas movimentações
+      <button id="btn-limpar-historico">limpar</button>
+    </h3>
+    <div id="historico-lista"></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const STORAGE_KEY = 'album-copa-2026-v3';
+  const HIST_KEY = 'album-copa-historico';
+  const ULTIMAS_KEY = 'album-copa-ultimas';
+
+  // ============== ESTADO ==============
+  let dados = null;
+  let estados = new Map();
+  let historico = [];
+  let ultimas = [];
+  let selecoes = [];
+
+  // ============== LOAD ==============
+  function carregar() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const obj = JSON.parse(raw);
+        Object.keys(obj).forEach(id => {
+          if (['tenho', 'falta', 'repetida'].includes(obj[id])) estados.set(id, obj[id]);
+        });
+      }
+    } catch(e) {}
+    try {
+      const h = localStorage.getItem(HIST_KEY);
+      if (h) historico = JSON.parse(h);
+    } catch(e) {}
+    try {
+      const u = localStorage.getItem(ULTIMAS_KEY);
+      if (u) ultimas = JSON.parse(u);
+    } catch(e) {}
+
+    if (window.AlbumCopa && window.AlbumCopa.data) {
+      dados = window.AlbumCopa.data;
+      // Extrair selecoes unicas na ordem do album
+      const vistas = new Set();
+      dados.figurinhas.forEach(f => {
+        if (!vistas.has(f.selecao) && (f.categoria === 'jogador' || f.categoria === 'tecnico' || ['Panini','Copa 2026','Cidades-Sede','História'].includes(f.selecao))) {
+          vistas.add(f.selecao);
+          selecoes.push(f.selecao);
+        }
+      });
+      popularSelects();
+      atualizarTudo();
+    } else {
+      document.getElementById('feedback').textContent = '⚠️ Carregando dados do álbum...';
+      document.getElementById('feedback').className = 'feedback info';
+      // Tentar carregar do main page
+      const check = setInterval(() => {
+        if (window.AlbumCopa && window.AlbumCopa.data) {
+          dados = window.AlbumCopa.data;
+          const vistas = new Set();
+          dados.figurinhas.forEach(f => {
+            if (!vistas.has(f.selecao) && (f.categoria === 'jogador' || f.categoria === 'tecnico' || ['Panini','Copa 2026','Cidades-Sede','História'].includes(f.selecao))) {
+              vistas.add(f.selecao);
+              selecoes.push(f.selecao);
+            }
+          });
+          popularSelects();
+          atualizarTudo();
+          clearInterval(check);
+        }
+      }, 300);
+    }
+  }
+
+  // ============== POPULAR SELECTS ==============
+  function popularSelects() {
+    [document.getElementById('sel-selecao'),
+     document.getElementById('troca-dar-selecao'),
+     document.getElementById('troca-receber-selecao')].forEach(sel => {
+      const val = sel.value;
+      sel.innerHTML = '<option value="">-- SEL --</option>';
+      selecoes.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s; opt.textContent = s;
+        sel.appendChild(opt);
+      });
+      if (val && selecoes.includes(val)) sel.value = val;
+    });
+  }
+
+  // ============== PARSE INPUT ==============
+  function parseNumbers(texto) {
+    const nums = new Set();
+    texto.split(',').forEach(part => {
+      part = part.trim();
+      if (!part) return;
+      if (part.includes('-')) {
+        const [a, b] = part.split('-').map(x => parseInt(x.trim()));
+        if (!isNaN(a) && !isNaN(b)) {
+          for (let i = a; i <= b; i++) nums.add(i);
+        }
+      } else {
+        const n = parseInt(part);
+        if (!isNaN(n)) nums.add(n);
+      }
+    });
+    return [...nums].sort((a,b) => a-b);
+  }
+
+  function getFigurinhas(selecao, numeros) {
+    if (!dados) return [];
+    // Para especiais (Panini, Copa 2026, Cidades-Sede, História): usa o numero sequencial
+    const selecoesEspeciais = ['Panini','Copa 2026','Cidades-Sede','História'];
+    if (selecoesEspeciais.includes(selecao)) {
+      return dados.figurinhas.filter(f => {
+        if (f.selecao !== selecao) return false;
+        return numeros.includes(f.numero);
+      });
+    }
+    // Para seleções normais: mapear code (BRA1 -> 1)
+    const codeMap = {
+      'México':'MEX','África do Sul':'RSA','Coreia do Sul':'KOR','Tchéquia':'CZE',
+      'Canadá':'CAN','Bósnia':'BIH','Catar':'QAT','Suíça':'SUI','Brasil':'BRA',
+      'Marrocos':'MAR','Haiti':'HAI','Escócia':'SCO','EUA':'USA','Paraguai':'PAR',
+      'Austrália':'AUS','Turquia':'TUR','Alemanha':'GER','Curaçao':'CUW',
+      'Costa do Marfim':'CIV','Equador':'ECU','Holanda':'NED','Japão':'JPN',
+      'Suécia':'SWE','Tunísia':'TUN','Bélgica':'BEL','Egito':'EGY','Irã':'IRN',
+      'Nova Zelândia':'NZL','Espanha':'ESP','Cabo Verde':'CPV','Arábia Saudita':'KSA',
+      'Uruguai':'URU','França':'FRA','Senegal':'SEN','Iraque':'IRQ','Noruega':'NOR',
+      'Argentina':'ARG','Argélia':'ALG','Áustria':'AUT','Jordânia':'JOR',
+      'Portugal':'POR','Congo':'COD','Uzbequistão':'UZB','Colômbia':'COL',
+      'Inglaterra':'ENG','Croácia':'CRO','Gana':'GHA','Panamá':'PAN'
+    };
+    const prefix = codeMap[selecao] || selecao.substring(0,3).toUpperCase();
+    return dados.figurinhas.filter(f => {
+      if (f.selecao !== selecao) return false;
+      const code = f.code || '';
+      const numMatch = parseInt(code.replace(prefix, '')) || 0;
+      return numeros.includes(numMatch);
+    });
+  }
+
+  // ============== MARCAR ==============
+  function marcar(selecao, numeros, estado) {
+    if (!selecao || !numeros.length) {
+      feedback('Selecione uma seleção e digite números', 'erro');
+      return [];
+    }
+
+    const figs = getFigurinhas(selecao, numeros);
+    if (!figs.length) {
+      feedback('Nenhuma figurinha encontrada para esses números em ' + selecao, 'erro');
+      return [];
+    }
+
+    let count = 0;
+    let nomes = [];
+    figs.forEach(f => {
+      const atual = estados.get(f.id);
+      if (estado === 'tenho' && atual === 'tenho') return;
+      if (estado === 'repetida' && atual === 'repetida') return;
+      
+      if (atual === 'tenho' && estado === 'repetida') {
+        estados.set(f.id, 'repetida');
+        count++;
+        nomes.push(f.nome);
+      } else if (estado === 'tenho') {
+        estados.set(f.id, 'tenho');
+        count++;
+        nomes.push(f.nome);
+      } else if (estado === 'repetida') {
+        estados.set(f.id, 'repetida');
+        count++;
+        nomes.push(f.nome);
+      }
+    });
+
+    if (count > 0) {
+      salvarEstados();
+      const emoji = estado === 'tenho' ? '✓' : '↻';
+      const msg = `${emoji} ${count} figurinhas marcadas como ${estado} (${selecao})`;
+      feedback(msg, 'ok');
+      
+      // Adicionar ao historico
+      const ts = new Date().toLocaleString('pt-BR');
+      historico.unshift({
+        tipo: estado,
+        selecao: selecao,
+        numeros: numeros,
+        quantidade: count,
+        timestamp: ts
+      });
+      if (historico.length > 200) historico = historico.slice(0, 200);
+      salvarHistorico();
+
+      // Adicionar às ultimas
+      figs.forEach(f => {
+        ultimas.unshift({ code: f.code || ('#'+f.numero), nome: f.nome, estado });
+      });
+      if (ultimas.length > 30) ultimas = ultimas.slice(0, 30);
+      salvarUltimas();
+
+      atualizarTudo();
+    } else {
+      feedback('Figurinhas já estavam nesse estado', 'info');
+    }
+
+    return figs;
+  }
+
+  // ============== TROCA ==============
+  function realizarTroca(darSel, darNums, receberSel, receberNums) {
+    if (!darSel || !darNums.length || !receberSel || !receberNums.length) {
+      feedback('Preencha todos os campos da troca', 'erro');
+      return;
+    }
+
+    // Dar baixa nas repetidas
+    const figsDar = getFigurinhas(darSel, darNums);
+    const figsReceber = getFigurinhas(receberSel, receberNums);
+
+    let darCount = 0, receberCount = 0;
+    
+    figsDar.forEach(f => {
+      if (estados.get(f.id) === 'repetida') {
+        estados.delete(f.id);
+        darCount++;
+      }
+    });
+
+    figsReceber.forEach(f => {
+      const atual = estados.get(f.id);
+      if (atual !== 'tenho' && atual !== 'repetida') {
+        estados.set(f.id, 'tenho');
+        receberCount++;
+      }
+    });
+
+    if (darCount > 0 || receberCount > 0) {
+      salvarEstados();
+      const msg = `🔄 Troca: dei ${darCount} repetidas (${darSel}) · recebi ${receberCount} novas (${receberSel})`;
+      feedback(msg, 'ok');
+      
+      historico.unshift({
+        tipo: 'troca',
+        deu: { selecao: darSel, numeros: darNums, qtd: darCount },
+        recebeu: { selecao: receberSel, numeros: receberNums, qtd: receberCount },
+        timestamp: new Date().toLocaleString('pt-BR')
+      });
+      if (historico.length > 200) historico = historico.slice(0, 200);
+      salvarHistorico();
+      atualizarTudo();
+
+      // Limpar campos
+      document.getElementById('troca-dar-numeros').value = '';
+      document.getElementById('troca-receber-numeros').value = '';
+    } else {
+      feedback('Nada a trocar — verifique as repetidas', 'info');
+    }
+  }
+
+  // ============== PERSISTÊNCIA ==============
+  function salvarEstados() {
+    try {
+      const obj = {};
+      estados.forEach((v, id) => { obj[id] = v; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+      // Disparar evento pro Album principal saber
+      window.dispatchEvent(new CustomEvent('album-update', { detail: obj }));
+    } catch(e) {}
+    // Sync com servidor
+    if (window.AlbumSync) {
+      window.AlbumSync.enviarParaServidor(estados);
+    }
+  }
+
+  function salvarHistorico() {
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(historico)); } catch(e) {}
+  }
+
+  function salvarUltimas() {
+    try { localStorage.setItem(ULTIMAS_KEY, JSON.stringify(ultimas)); } catch(e) {}
+  }
+
+  // ============== FEEDBACK ==============
+  function feedback(msg, tipo) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = 'feedback ' + (tipo || 'info');
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => {
+      if (el.className !== 'feedback info') el.className = 'feedback';
+      if (tipo === 'ok' || tipo === 'info') setTimeout(() => { el.textContent = ''; }, 2000);
+    }, 4000);
+  }
+
+  // ============== ATUALIZAR UI ==============
+  function atualizarTudo() {
+    if (!dados) return;
+    const total = dados.total;
+    const tenho = [...estados.values()].filter(v => v === 'tenho').length;
+    const repetida = [...estados.values()].filter(v => v === 'repetida').length;
+    const falta = total - tenho - repetida;
+    const pct = total ? Math.round((tenho / total) * 100) : 0;
+
+    document.getElementById('stats-colecao').textContent = pct + '%';
+    document.getElementById('stats-tenho').textContent = tenho;
+    document.getElementById('stats-repetida').textContent = repetida;
+    document.getElementById('stats-falta').textContent = falta;
+    document.getElementById('r-tenho').textContent = tenho;
+    document.getElementById('r-repetida').textContent = repetida;
+    document.getElementById('r-falta').textContent = falta;
+
+    // Últimas
+    const container = document.getElementById('ultimas-container');
+    if (ultimas.length === 0) {
+      container.innerHTML = '<span style="color:var(--texto-terciario);font-size:0.7rem">Últimas marcadas aparecem aqui</span>';
+    } else {
+      container.innerHTML = ultimas.slice(0, 15).map(u =>
+        `<span class="ultima-tag ${u.estado}">${u.code || u.nome}</span>`
+      ).join('');
+    }
+
+    // Histórico
+    const histEl = document.getElementById('historico-lista');
+    if (historico.length === 0) {
+      histEl.innerHTML = '<div style="color:var(--texto-terciario);font-size:0.75rem;padding:0.5rem 0">Nenhuma movimentação ainda</div>';
+    } else {
+      histEl.innerHTML = historico.slice(0, 50).map(h => {
+        if (h.tipo === 'troca') {
+          return `<div class="historico-item">
+            <span>🔄 Dei ${h.deu.qtd} reps (${h.deu.selecao}) · Recebi ${h.recebeu.qtd} (${h.recebeu.selecao})</span>
+            <span style="font-size:0.6rem;color:var(--texto-terciario)">${h.timestamp}</span>
+          </div>`;
+        }
+        const tag = h.tipo === 'tenho' ? 'h-tag-tenho' : 'h-tag-repetida';
+        const label = h.tipo === 'tenho' ? '✓ TENHO' : '↻ REP';
+        return `<div class="historico-item">
+          <span><span class="historico-tag ${tag}">${label}</span> ${h.quantidade}x ${h.selecao} (nums: ${h.numeros.join(',')})</span>
+          <span style="font-size:0.6rem;color:var(--texto-terciario)">${h.timestamp}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ============== NFC ==============
+  function initNFC() {
+    if ('NDEFReader' in window) {
+      document.getElementById('nfc-status').textContent = '📡 NFC ✓';
+      document.getElementById('nfc-status').className = 'nfc-badge ativo';
+      
+      document.getElementById('nfc-status').addEventListener('click', async () => {
+        try {
+          const reader = new NDEFReader();
+          await reader.scan();
+          document.getElementById('feedback').textContent = '📡 NFC ativo! Aproxime a tag...';
+          document.getElementById('feedback').className = 'feedback info';
+          
+          reader.addEventListener('reading', ({ message }) => {
+            for (const record of message.records) {
+              if (record.recordType === 'text') {
+                const decoder = new TextDecoder(record.encoding || 'utf-8');
+                const text = decoder.decode(record.data);
+                // Formato esperado: "SEL:1,2,5,10" ou "SEL:1-5"
+                const match = text.match(/^(\w+):(.+)$/);
+                if (match) {
+                  const selNome = Object.entries(window.AlbumCopa.BANDEIRAS || {}).find(([k,v]) =>
+                    k.substring(0,3).toUpperCase() === match[1].toUpperCase()
+                  )?.[0] || match[1];
+                  document.getElementById('sel-selecao').value = selNome;
+                  document.getElementById('input-numeros').value = match[2];
+                  feedback(`📡 NFC lido: ${selNome} ${match[2]}`, 'info');
+                }
+              }
+            }
+          });
+        } catch(err) {
+          feedback('❌ Erro NFC: ' + err.message, 'erro');
+        }
+      });
+    } else {
+      document.getElementById('nfc-status').textContent = '📡 NFC ✗';
+    }
+  }
+
+  // ============== EVENTOS ==============
+  document.addEventListener('DOMContentLoaded', () => {
+    carregar();
+    initNFC();
+    // Iniciar indicador de sync
+    if (window.AlbumSync) {
+      setTimeout(() => AlbumSync.criarIndicador(document.getElementById('sync-indicator-container')), 100);
+    }
+
+    // Botão OK
+    document.getElementById('btn-add').addEventListener('click', () => {
+      const sel = document.getElementById('sel-selecao').value;
+      const nums = parseNumbers(document.getElementById('input-numeros').value);
+      const acoes = document.querySelectorAll('.input-actions button');
+      const ativa = document.querySelector('.input-actions button.ativo') || acoes[0];
+      ativa.classList.add('ativo');
+      const estado = ativa.dataset.acao || 'tenho';
+      marcar(sel, nums, estado);
+    });
+
+    // Enter no input
+    document.getElementById('input-numeros').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('btn-add').click();
+    });
+
+    // Botões de ação (Tenho/Repetida)
+    document.querySelectorAll('.input-actions button, .especial-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.input-actions button').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+      });
+    });
+
+    // Botões de especial
+    document.querySelectorAll('.especial-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sel = btn.dataset.sel;
+        const nums = btn.dataset.nums.split(',').map(Number);
+        // Marcar como tenho diretamente
+        document.getElementById('sel-selecao').value = sel;
+        marcar(sel, nums, 'tenho');
+      });
+    });
+
+    // Botão troca
+    document.getElementById('btn-troca').addEventListener('click', () => {
+      const darSel = document.getElementById('troca-dar-selecao').value;
+      const darNums = parseNumbers(document.getElementById('troca-dar-numeros').value);
+      const receberSel = document.getElementById('troca-receber-selecao').value;
+      const receberNums = parseNumbers(document.getElementById('troca-receber-numeros').value);
+      realizarTroca(darSel, darNums, receberSel, receberNums);
+    });
+
+    // Limpar histórico
+    document.getElementById('btn-limpar-historico').addEventListener('click', () => {
+      if (confirm('Limpar todo o histórico?')) {
+        historico = [];
+        salvarHistorico();
+        atualizarTudo();
+      }
+    });
+  });
+
+  // ============== ATALHO TECLADO ==============
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 't' && e.ctrlKey) {
+      e.preventDefault();
+      document.querySelector('[data-acao="tenho"]').click();
+    }
+    if (e.key === 'r' && e.ctrlKey) {
+      e.preventDefault();
+      document.querySelector('[data-acao="repetida"]').click();
+    }
+    if (e.key === 'Enter' && e.ctrlKey) {
+      document.getElementById('btn-add').click();
+    }
+  });
+
+  // ============== MOTION ANIMATIONS ==============
+  if (typeof Motion !== 'undefined') {
+    // Stagger nas areas principais
+    const areas = document.querySelectorAll('.resumo-grid, .input-area, .troca-area, .historico-area');
+    areas.forEach((el, i) => {
+      Motion.animate(el, { opacity: [0, 1], y: [12, 0] }, {
+        duration: 0.5, delay: Motion.stagger(0.06, { from: i }), easing: [0.16, 1, 0.3, 1]
+      });
+    });
+    // Hover nos cards de resumo
+    document.querySelectorAll('.resumo-card').forEach(card => {
+      Motion.hover(card, {
+        onEnter: () => Motion.animate(card, { y: -2 }, { duration: 0.2, easing: [0.16,1,0.3,1] }),
+        onLeave: () => Motion.animate(card, { y: 0 }, { duration: 0.2, easing: [0.16,1,0.3,1] })
+      });
+    });
+    // Press nos botoes principais
+    document.querySelectorAll('button, .troca-btn').forEach(btn => {
+      Motion.press(btn, {
+        onStart: () => Motion.animate(btn, { scale: 0.97 }, { duration: 0.08 }),
+        onEnd: () => Motion.animate(btn, { scale: 1 }, { duration: 0.15 })
+      });
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
