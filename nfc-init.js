@@ -1,7 +1,11 @@
 /**
- * nfc-init.js v2 — Lógica da landing NFC (standalone, sem dependências)
- * Smart routing: se PWA instalado → redireciona pro álbum
- * Se não → mostra tela de instalação
+ * nfc-init.js v3 — Landing NFC com smart routing PWA
+ *
+ * FLUXO:
+ * 1. Tenta abrir no PWA já instalado via custom scheme + intent
+ * 2. Se já estiver no PWA (display-mode standalone) → vai pro index.html
+ * 3. Se não → mostra tela de instalação
+ * 4. Se já viu antes → mostra stats direto
  */
 (function() {
   'use strict';
@@ -9,14 +13,43 @@
   const STORAGE_KEY = 'album-copa-2026-v3';
   const TOTAL = 676;
 
-  const isInstalled = window.matchMedia('(display-mode: standalone)').matches
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true;
 
   const jaViuNfc = localStorage.getItem('album-copa-nfc-visto') === 'true';
   let deferredPrompt = null;
 
-  // ===== ANIMAÇÕES SIMPLES (CSS nativo, sem Motion) =====
+  // ===== SMART ROUTING: TENTAR ABRIR NO PWA =====
+
+  function tentarAbrirNoPwa() {
+    // Se já tá no PWA, redireciona pro álbum
+    if (isStandalone) {
+      window.location.replace('index.html');
+      return true;
+    }
+
+    // Tenta abrir via start_url do manifest
+    // O Android PWA registra o start_url como intent-filter
+    // Usamos um iframe invisível + setTimeout pra detectar se falhou
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0';
+      iframe.src = '/index.html';
+      document.body.appendChild(iframe);
+
+      // Se funcionou (PWA abre), remove o iframe e deixa o fluxo seguir
+      setTimeout(() => {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      }, 500);
+
+      return false; // Continua no fluxo normal
+    } catch(e) {
+      return false;
+    }
+  }
+
+  // ===== ANIMAÇÕES =====
 
   function animarElementos() {
     document.querySelectorAll('.anim-item').forEach((el, i) => {
@@ -36,7 +69,6 @@
 
     container.style.display = 'none';
 
-    // Cria a tela de instalação
     const installScreen = document.createElement('div');
     installScreen.className = 'install-screen';
     installScreen.style.cssText = `
@@ -66,7 +98,7 @@
         background:transparent; border:1px solid #d4af37; color:#d4af37;
         cursor:pointer; transition:all 0.3s ease;
         font-family:'Inter',sans-serif; letter-spacing:0.05em; border-radius:8px;
-      ">📲 Instalar app</button>
+      " onclick="this.style.background='rgba(212,175,55,0.1)'">📲 Instalar app</button>
       <button id="btn-pular-instalar" style="
         background:none; border:none; color:rgba(240,237,232,0.25);
         font-size:0.65rem; cursor:pointer; font-family:'JetBrains Mono',monospace;
@@ -77,7 +109,6 @@
 
     document.body.appendChild(installScreen);
 
-    // Evento do botão instalar
     document.getElementById('btn-instalar-agora').addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -93,14 +124,13 @@
       }
     });
 
-    // Evento do "depois eu instalo"
     document.getElementById('btn-pular-instalar').addEventListener('click', () => {
       localStorage.setItem('album-copa-nfc-visto', 'true');
       mostrarConteudo();
     });
   }
 
-  // ===== CONTEÚDO NORMAL (stats + links) =====
+  // ===== CONTEÚDO NORMAL =====
 
   function carregarStats() {
     const estados = new Map();
@@ -134,7 +164,6 @@
     const container = document.querySelector('.container');
     if (container) {
       container.style.display = 'flex';
-      // Esconde a tela de instalação se existir
       const installScreen = document.querySelector('.install-screen');
       if (installScreen) installScreen.remove();
     }
@@ -161,10 +190,16 @@
   // ===== INIT =====
 
   function init() {
-    if (isInstalled) {
-      window.location.href = 'index.html';
+    // Se já tá no PWA, vai pro álbum na hora
+    if (isStandalone) {
+      window.location.replace('index.html');
       return;
     }
+
+    // Tenta abrir no PWA (se instalado, o iframe vai resolver)
+    const abriuPwa = tentarAbrirNoPwa();
+    if (abriuPwa) return;
+
     if (!jaViuNfc) {
       mostrarTelaInstalacao();
     } else {
