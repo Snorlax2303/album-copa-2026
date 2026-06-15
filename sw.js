@@ -1,4 +1,4 @@
-const CACHE_NAME = 'album-copa-v4-pwa';
+const CACHE_NAME = 'album-copa-v5-pwa';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const urlsToCache = [
   '/nfc.html',
   '/styles.css?v=3',
   '/data.js?v=3',
+  '/sync.js?v=2',
   '/app.js?v=3',
   '/manifest.json'
 ];
