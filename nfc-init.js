@@ -1,17 +1,16 @@
 /**
- * nfc-init.js v3 — Landing NFC com smart routing PWA
+ * nfc-init.js v4 — NFC: tenta abrir PWA, fallback landing
  *
  * FLUXO:
- * 1. Tenta abrir no PWA já instalado via custom scheme + intent
- * 2. Se já estiver no PWA (display-mode standalone) → vai pro index.html
- * 3. Se não → mostra tela de instalação
- * 4. Se já viu antes → mostra stats direto
+ * 1. Já está no PWA (standalone) → /index.html
+ * 2. Já visitou antes (localStorage) → /index.html (direto)
+ * 3. Nunca visitou → mostra landing com botão instalar + "Entrar sem instalar"
  */
 (function() {
   'use strict';
 
-  const STORAGE_KEY = 'album-copa-2026-v3';
   const TOTAL = 676;
+  const STORAGE_KEY = 'album-copa-2026-v3';
 
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || window.matchMedia('(display-mode: minimal-ui)').matches
@@ -20,37 +19,13 @@
   const jaViuNfc = localStorage.getItem('album-copa-nfc-visto') === 'true';
   let deferredPrompt = null;
 
-  // ===== SMART ROUTING: TENTAR ABRIR NO PWA =====
-
-  function tentarAbrirNoPwa() {
-    // Se já tá no PWA, redireciona pro álbum
-    if (isStandalone) {
-      window.location.replace('index.html');
-      return true;
-    }
-
-    // Tenta abrir via start_url do manifest
-    // O Android PWA registra o start_url como intent-filter
-    // Usamos um iframe invisível + setTimeout pra detectar se falhou
-    try {
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0';
-      iframe.src = '/index.html';
-      document.body.appendChild(iframe);
-
-      // Se funcionou (PWA abre), remove o iframe e deixa o fluxo seguir
-      setTimeout(() => {
-        if (document.body.contains(iframe)) document.body.removeChild(iframe);
-      }, 500);
-
-      return false; // Continua no fluxo normal
-    } catch(e) {
-      return false;
-    }
+  // Se já está no PWA ou já viu → vai pro álbum
+  if (isStandalone || jaViuNfc) {
+    window.location.replace('/index.html');
+    return;
   }
 
   // ===== ANIMAÇÕES =====
-
   function animarElementos() {
     document.querySelectorAll('.anim-item').forEach((el, i) => {
       setTimeout(() => {
@@ -62,7 +37,6 @@
   }
 
   // ===== TELA DE INSTALAÇÃO =====
-
   function mostrarTelaInstalacao() {
     const container = document.querySelector('.container');
     if (!container) return;
@@ -98,12 +72,11 @@
         background:transparent; border:1px solid #d4af37; color:#d4af37;
         cursor:pointer; transition:all 0.3s ease;
         font-family:'Inter',sans-serif; letter-spacing:0.05em; border-radius:8px;
-      " onclick="this.style.background='rgba(212,175,55,0.1)'">📲 Instalar app</button>
-      <button id="btn-pular-instalar" style="
-        background:none; border:none; color:rgba(240,237,232,0.25);
-        font-size:0.65rem; cursor:pointer; font-family:'JetBrains Mono',monospace;
-        text-decoration:underline; transition:color 0.3s;
-      ">depois eu instalo</button>
+      ">📲 Instalar app</button>
+      <a href="index.html" style="
+        color:rgba(240,237,232,0.25); font-size:0.65rem; font-family:'JetBrains Mono',monospace;
+        text-decoration:underline; transition:color 0.3s; cursor:pointer;
+      ">entrar sem instalar →</a>
       <p id="nfc-fallback-msg" style="display:none;color:rgba(240,237,232,0.3);font-size:0.7rem;max-width:280px;line-height:1.5"></p>
     `;
 
@@ -123,15 +96,9 @@
         msg.style.display = 'block';
       }
     });
-
-    document.getElementById('btn-pular-instalar').addEventListener('click', () => {
-      localStorage.setItem('album-copa-nfc-visto', 'true');
-      mostrarConteudo();
-    });
   }
 
-  // ===== CONTEÚDO NORMAL =====
-
+  // ===== STATS =====
   function carregarStats() {
     const estados = new Map();
     try {
@@ -172,7 +139,6 @@
   }
 
   // ===== EVENTS =====
-
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -183,35 +149,15 @@
     deferredPrompt = null;
   });
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  }
-
   // ===== INIT =====
-
   function init() {
-    // Se já tá no PWA, vai pro álbum na hora
-    if (isStandalone) {
-      window.location.replace('index.html');
-      return;
-    }
-
-    // Tenta abrir no PWA (se instalado, o iframe vai resolver)
-    const abriuPwa = tentarAbrirNoPwa();
-    if (abriuPwa) return;
-
-    if (!jaViuNfc) {
-      mostrarTelaInstalacao();
-    } else {
-      const btn = document.getElementById('btn-install');
-      if (btn) btn.style.display = 'inline-block';
-      mostrarConteudo();
-    }
+    // Só chega aqui se NÃO é PWA e NUNCA viu
+    mostrarTelaInstalacao();
   }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
-    init();
+    setTimeout(init, 100);
   }
 })();
