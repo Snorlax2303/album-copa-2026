@@ -59,16 +59,23 @@
       estado.estados.forEach((v, id) => { obj[id] = v; });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
     } catch (e) {}
-    // Sync com servidor (fire-and-forget)
-    if (window.AlbumSync) {
-      window.AlbumSync.enviarParaServidor(estado.estados);
-    }
   }
 
   function definirEstado(id, novoEstado) {
+    // Salva no Map local
     if (novoEstado === null) estado.estados.delete(id);
     else estado.estados.set(id, novoEstado);
-    salvarEstados();
+
+    // Salva no localStorage + sync com servidor
+    try {
+      const obj = {};
+      estado.estados.forEach((v, id) => { obj[id] = v; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+    } catch (e) {}
+    if (window.AlbumSync) {
+      window.AlbumSync.marcar(id, novoEstado);
+    }
+
     renderizarTudo();
   }
 

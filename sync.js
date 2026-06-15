@@ -1,12 +1,16 @@
 /**
- * sync.js — Sincronizador do Álbum Copa 2026
+ * sync.js v2 — Sincronizador do Álbum Copa 2026
  * 
- * Estratégia: localStorage como fonte primária (offline-first)
- * Servidor como backup/sync (online)
+ * CORREÇÃO: Servidor como ÚNICA fonte da verdade.
+ * Ao syncar, o servidor retorna o estado completo.
+ * O cliente ACEITA o que veio do servidor (sobrescreve local).
+ * Só envia pro servidor quando o USUÁRIO marca/desmarca algo.
  * 
- * Inclui: indicador visual de status + botão sync + Motion animations
+ * Estratégia:
+ * - Ao carregar: puxa do servidor → sobrescreve localStorage
+ * - Ao marcar/desmarcar: envia pro servidor → servidor processa → retorna estado limpo
+ * - Polling 30s: servidor é a verdade, cliente adapta
  */
-
 (function() {
   'use strict';
 
@@ -16,17 +20,16 @@
 
   // ============== STATUS ==============
 
-  let status = 'offline';   // 'offline' | 'syncing' | 'online'
+  let status = 'offline';
   let ultimoSyncTimestamp = null;
-  let ultimoSyncTexto = '—';
-  let estadoAtual = null;
+  let ultimoSyncTextoRel = '—';
   let callbacks = [];
 
   function setStatus(novo, ts) {
     status = novo;
     if (ts) ultimoSyncTimestamp = ts;
     atualizarIndicador();
-    callbacks.forEach(cb => cb(status, ultimoSyncTexto));
+    callbacks.forEach(cb => cb(status, ultimoSyncTextoRel));
   }
 
   function onStatusChange(cb) {
@@ -38,23 +41,20 @@
   function carregarLocal() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return new Map();
+      if (!raw) return {};
       const obj = JSON.parse(raw);
-      const map = new Map();
+      // Filtrar só estados válidos
+      const limpo = {};
       Object.keys(obj).forEach(id => {
-        if (['tenho', 'falta', 'repetida'].includes(obj[id])) map.set(id, obj[id]);
+        if (['tenho', 'repetida'].includes(obj[id])) limpo[id] = obj[id];
       });
-      return map;
-    } catch(e) { return new Map(); }
+      return limpo;
+    } catch(e) { return {}; }
   }
-
-  // ============== SALVAR LOCAL ==============
 
   function salvarLocal(estados) {
     try {
-      const obj = {};
-      estados.forEach((v, id) => { obj[id] = v; });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(estados));
     } catch(e) {}
   }
 
@@ -67,35 +67,94 @@
     if (diff < 60) return `há ${diff}s`;
     const min = Math.floor(diff / 60);
     if (min < 60) return `há ${min}min`;
-    const h = Math.floor(min / 60);
-    if (h < 24) return `há ${h}h`;
-    return `há ${Math.floor(h / 24)}d`;
+    return `há ${Math.floor(min / 60)}h`;
   }
 
-  function atualizarTimeAgo() {
-    if (ultimoSyncTimestamp) {
-      ultimoSyncTexto = timeAgo(ultimoSyncTimestamp);
-    }
-  }
-
-  // ============== SYNC ==============
+  // ============== SYNC (NOVO FLUXO) ==============
 
   let ultimoSync = 0;
-  const MIN_SYNC_INTERVAL = 5000;
+  const MIN_SYNC_INTERVAL = 3000;
 
-  async function syncComServidor(estadosLocais, forcar) {
+  /**
+   * Puxa do servidor e sobrescreve o localStorage local.
+   * Usado no polling e no init.
+   */
+  async function puxarDoServidor() {
     const agora = Date.now();
-    if (!forcar && agora - ultimoSync < MIN_SYNC_INTERVAL) return null;
+    if (agora - ultimoSync < MIN_SYNC_INTERVAL) return null;
     ultimoSync = agora;
 
     setStatus('syncing');
-    estadoAtual = estadosLocais;
 
     try {
-      const payload = {};
-      estadosLocais.forEach((v, id) => {
-        if (v === 'tenho' || v === 'repetida') payload[id] = v;
+      const resp = await fetch(SERVER_URL + '/estados', {
+        signal: AbortSignal.timeout(8000)
       });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      if (!data.ok) throw new Error('API error');
+
+      const serverEstados = data.estados || {};
+
+      // Servidor é a verdade: sobrescreve localStorage
+      const local = carregarLocal();
+
+      // Mescla: o que está no servidor tem prioridade
+      // O que está no local e NÃO está no servidor → se o servidor não tem, é porque foi removido → mantém removido
+      const merged = { ...local };
+
+      let mudou = false;
+      Object.keys(serverEstados).forEach(id => {
+        if (merged[id] !== serverEstados[id]) {
+          merged[id] = serverEstados[id];
+          mudou = true;
+        }
+      });
+
+      // Remove do local o que foi removido do servidor
+      Object.keys(merged).forEach(id => {
+        if (!serverEstados[id] && ['tenho', 'repetida'].includes(local[id])) {
+          delete merged[id];
+          mudou = true;
+        }
+      });
+
+      if (mudou) {
+        salvarLocal(merged);
+        // Dispara evento pra página atualizar
+        window.dispatchEvent(new CustomEvent('album-sync', { detail: { estados: merged } }));
+      }
+
+      const now = Date.now();
+      ultimoSyncTimestamp = now;
+      ultimoSyncTextoRel = 'agora';
+      setStatus('online', now);
+
+      return data;
+    } catch(e) {
+      ultimoSyncTimestamp = agora;
+      ultimoSyncTextoRel = timeAgo(agora);
+      setStatus('offline');
+      return null;
+    }
+  }
+
+  /**
+   * Envia marcação/desmarcação pro servidor.
+   * Só chama quando o usuário INTERAGE (clicou numa figurinha).
+   * O servidor processa e retorna o estado limpo → cliente aceita.
+   */
+  async function enviarMarcacao(figId, novoEstado) {
+    try {
+      setStatus('syncing');
+
+      const payload = {};
+      if (novoEstado && ['tenho', 'repetida'].includes(novoEstado)) {
+        payload[figId] = novoEstado;
+      } else {
+        // Se não tem estado, manda null pra remover do servidor
+        payload[figId] = null;
+      }
 
       const resp = await fetch(SERVER_URL + '/sync', {
         method: 'POST',
@@ -108,66 +167,78 @@
       const data = await resp.json();
       if (!data.ok) throw new Error('API error');
 
-      // Merge: o que veio do servidor E não tem no local = adicionar
-      let mudou = false;
+      // Servidor retornou o estado completo → sobrescreve local
       if (data.estados) {
+        const local = carregarLocal();
+        const merged = { ...local };
+
+        // O que o servidor tem = verdade
         Object.keys(data.estados).forEach(id => {
-          if (!estadosLocais.has(id)) {
-            estadosLocais.set(id, data.estados[id]);
-            mudou = true;
+          merged[id] = data.estados[id];
+        });
+
+        // Remove do local o que não está mais no servidor
+        Object.keys(merged).forEach(id => {
+          if (!data.estados[id]) {
+            delete merged[id];
           }
         });
+
+        salvarLocal(merged);
+        window.dispatchEvent(new CustomEvent('album-sync', { detail: { estados: merged } }));
       }
 
       const now = Date.now();
       ultimoSyncTimestamp = now;
-      ultimoSyncTexto = 'agora';
+      ultimoSyncTextoRel = 'agora';
       setStatus('online', now);
-
-      if (mudou) {
-        salvarLocal(estadosLocais);
-        window.dispatchEvent(new CustomEvent('album-sync', { detail: { estados: Object.fromEntries(estadosLocais) } }));
-      }
-
-      return data;
+      return true;
     } catch(e) {
-      ultimoSyncTimestamp = agora;
-      ultimoSyncTexto = timeAgo(agora);
       setStatus('offline');
-      return null;
+      return false;
     }
   }
 
-  async function enviarParaServidor(estados) {
+  /**
+   * Envia TODOS os estados locais pro servidor (forçar sync completo)
+   */
+  async function enviarTudo() {
     try {
-      const payload = {};
-      estados.forEach((v, id) => {
-        if (v === 'tenho' || v === 'repetida') payload[id] = v;
-      });
-      
-      await fetch(SERVER_URL + '/sync', {
+      setStatus('syncing');
+      const local = carregarLocal();
+
+      const resp = await fetch(SERVER_URL + '/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passkey: PASSKEY, estados: payload }),
-        signal: AbortSignal.timeout(5000)
+        body: JSON.stringify({ passkey: PASSKEY, estados: local }),
+        signal: AbortSignal.timeout(8000)
       });
+
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      if (!data.ok) throw new Error('API error');
+
+      // Servidor é a verdade
+      if (data.estados) {
+        salvarLocal(data.estados);
+        window.dispatchEvent(new CustomEvent('album-sync', { detail: { estados: data.estados } }));
+      }
+
       const now = Date.now();
       ultimoSyncTimestamp = now;
-      ultimoSyncTexto = 'agora';
-      if (status !== 'online') setStatus('online', now);
-    } catch(e) {}
+      ultimoSyncTextoRel = 'agora';
+      setStatus('online', now);
+      return true;
+    } catch(e) {
+      setStatus('offline');
+      return false;
+    }
   }
 
   // ============== INDICADOR VISUAL ==============
 
-  let indicadorEl = null;
-  let btnSyncEl = null;
-  let timeEl = null;
-
   function criarIndicador(container) {
     if (!container) return;
-
-    // Só criar se não existir ainda
     if (document.getElementById('sync-indicator')) return;
 
     const wrapper = document.createElement('div');
@@ -179,7 +250,6 @@
       margin-left: auto;
     `;
 
-    // Dot de status
     const dot = document.createElement('span');
     dot.id = 'sync-dot';
     dot.style.cssText = `
@@ -189,27 +259,23 @@
     `;
     wrapper.appendChild(dot);
 
-    // Label do status
     const label = document.createElement('span');
     label.id = 'sync-label';
     label.textContent = 'offline';
     label.style.cssText = `font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.08em;`;
     wrapper.appendChild(label);
 
-    // Separador
     const sep = document.createElement('span');
     sep.textContent = '·';
     sep.style.cssText = `opacity: 0.3;`;
     wrapper.appendChild(sep);
 
-    // Último sync
-    timeEl = document.createElement('span');
+    const timeEl = document.createElement('span');
     timeEl.id = 'sync-time';
-    timeEl.textContent = ultimoSyncTexto || '—';
+    timeEl.textContent = ultimoSyncTextoRel || '—';
     wrapper.appendChild(timeEl);
 
-    // Botão Sync
-    btnSyncEl = document.createElement('button');
+    const btnSyncEl = document.createElement('button');
     btnSyncEl.id = 'btn-forcar-sync';
     btnSyncEl.textContent = '↻';
     btnSyncEl.title = 'Sincronizar agora';
@@ -220,26 +286,30 @@
       transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
       font-family: inherit;
     `;
-    btnSyncEl.addEventListener('click', forcarSync);
+    btnSyncEl.addEventListener('click', () => {
+      btnSyncEl.style.transform = 'rotate(360deg)';
+      btnSyncEl.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+      enviarTudo().then(() => {
+        setTimeout(() => {
+          btnSyncEl.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
+          btnSyncEl.style.transform = 'rotate(0deg)';
+        }, 600);
+      });
+    });
     wrapper.appendChild(btnSyncEl);
 
     container.appendChild(wrapper);
 
-    // Animar entrada com Motion
     if (typeof Motion !== 'undefined') {
       Motion.animate(wrapper, { opacity: [0, 1] }, { duration: 0.4, easing: [0.16,1,0.3,1], delay: 0.8 });
     }
   }
 
   function atualizarIndicador() {
-    atualizarTimeAgo();
-
     const dot = document.getElementById('sync-dot');
     const label = document.getElementById('sync-label');
     if (!dot || !label) return;
 
-    // Remover classes antigas
-    dot.className = '';
     dot.style.cssText = `
       width: 6px; height: 6px; border-radius: 50%;
       display: inline-block; flex-shrink: 0;
@@ -251,51 +321,29 @@
       dot.style.boxShadow = '0 0 6px rgba(76,175,80,0.4)';
       label.textContent = 'online';
       label.style.color = 'rgba(76,175,80,0.7)';
-      if (btnSyncEl) {
-        btnSyncEl.style.borderColor = 'rgba(76,175,80,0.2)';
-        btnSyncEl.style.color = 'rgba(76,175,80,0.5)';
-      }
     } else if (status === 'syncing') {
       dot.style.background = '#ff9800';
       dot.style.boxShadow = '0 0 6px rgba(255,152,0,0.4)';
       dot.style.animation = 'sync-pulse 0.8s ease-in-out infinite';
       label.textContent = 'sync';
       label.style.color = 'rgba(255,152,0,0.7)';
-      if (btnSyncEl) {
-        btnSyncEl.style.borderColor = 'rgba(255,152,0,0.2)';
-        btnSyncEl.style.color = 'rgba(255,152,0,0.5)';
-        btnSyncEl.style.transform = 'rotate(180deg)';
-      }
     } else {
       dot.style.background = '#ef5350';
       label.textContent = 'offline';
       label.style.color = 'rgba(239,83,80,0.5)';
-      if (btnSyncEl) {
-        btnSyncEl.style.borderColor = 'rgba(255,255,255,0.08)';
-        btnSyncEl.style.color = 'rgba(240,237,232,0.25)';
-        btnSyncEl.style.transform = 'rotate(0deg)';
-      }
     }
 
+    const timeEl = document.getElementById('sync-time');
     if (timeEl) {
-      timeEl.textContent = ultimoSyncTexto || '—';
+      atualizarTimeAgo();
+      timeEl.textContent = ultimoSyncTextoRel || '—';
     }
   }
 
-  async function forcarSync() {
-    if (btnSyncEl) {
-      btnSyncEl.style.transform = 'rotate(360deg)';
-      btnSyncEl.style.transition = 'transform 0.5s cubic-bezier(0.16,1,0.3,1)';
+  function atualizarTimeAgo() {
+    if (ultimoSyncTimestamp) {
+      ultimoSyncTextoRel = timeAgo(ultimoSyncTimestamp);
     }
-    const estados = carregarLocal();
-    await syncComServidor(estados, true);
-    // Reset botão
-    setTimeout(() => {
-      if (btnSyncEl) {
-        btnSyncEl.style.transition = 'transform 0.3s cubic-bezier(0.16,1,0.3,1)';
-        btnSyncEl.style.transform = status === 'syncing' ? 'rotate(180deg)' : 'rotate(0deg)';
-      }
-    }, 600);
   }
 
   // ============== CSS DA ANIMAÇÃO ==============
@@ -317,20 +365,41 @@
     document.head.appendChild(style);
   }
 
+  // ============== INTERCEPTAR MARCAÇÕES ==============
+
+  /**
+   * Hook: app.js chama isso quando o usuário marca uma figurinha.
+   * Em vez de sync.js fazer polling burro, ele ESPERA o usuário agir.
+   */
+  function marcar(figId, estado) {
+    // Salva local primeiro (instantâneo pro usuário)
+    const local = carregarLocal();
+    if (estado && ['tenho', 'repetida'].includes(estado)) {
+      local[figId] = estado;
+    } else {
+      delete local[figId];
+    }
+    salvarLocal(local);
+
+    // Manda pro servidor (fire-and-forget, mas com retry)
+    enviarMarcacao(figId, estado);
+  }
+
   // ============== EXPOR API GLOBAL ==============
 
   window.AlbumSync = {
     carregarLocal,
     salvarLocal,
-    syncComServidor,
-    enviarParaServidor,
+    puxarDoServidor,
+    enviarMarcacao,
+    enviarTudo,
     criarIndicador,
     onStatusChange,
-    forcarSync,
+    marcar,
     SERVER_URL,
     STORAGE_KEY,
     getStatus: () => status,
-    ultimoSyncTexto: () => ultimoSyncTexto
+    ultimoSyncTexto: () => ultimoSyncTextoRel
   };
 
   // ============== AUTO INIT ==============
@@ -338,8 +407,8 @@
   injectAnimCSS();
 
   function init() {
-    const estados = carregarLocal();
-    syncComServidor(estados);
+    // No init: puxa do servidor e sobrescreve local
+    puxarDoServidor();
   }
 
   if (document.readyState === 'loading') {
@@ -348,19 +417,16 @@
     setTimeout(init, 500);
   }
 
-  // Re-sync a cada 30s
+  // Polling a cada 30s — servidor é a verdade
   setInterval(() => {
-    const estados = carregarLocal();
-    syncComServidor(estados);
+    puxarDoServidor();
   }, 30000);
 
   // Atualizar texto "há X tempo" a cada 15s
   setInterval(() => {
-    if (ultimoSyncTimestamp) {
-      ultimoSyncTexto = timeAgo(ultimoSyncTimestamp);
-      const el = document.getElementById('sync-time');
-      if (el) el.textContent = ultimoSyncTexto;
-    }
+    atualizarTimeAgo();
+    const el = document.getElementById('sync-time');
+    if (el) el.textContent = ultimoSyncTextoRel;
   }, 15000);
 
 })();
